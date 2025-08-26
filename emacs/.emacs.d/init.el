@@ -1,5 +1,10 @@
 ;;; init.el --- shauncheng
 
+
+(recentf-mode 1)                     ;; turn it on
+(setq recentf-max-saved-items 1000)   ;; how many files to keep
+(setq recentf-max-menu-items 50)
+
 (defun my/enable-line-numbers-for-code ()
   "Enable line numbers for programming modes."
   (when (derived-mode-p 'prog-mode)
@@ -34,7 +39,9 @@
 (use-package consult)
 
 ;; Git on demand
-(use-package magit :commands (magit-status))
+(use-package magit
+  :ensure t
+  :bind (("C-x g" . magit-status)))
 
 ;; LSP on demand
 (use-package eglot
@@ -58,19 +65,93 @@
 
 
 ;; Enable Evil mode
+(setq evil-want-C-u-scroll t)
 (require 'evil)
-(require 'evil-leader)
-(global-evil-leader-mode)
-(setq evil-leader/leader "<SPC>")
-(require 'evil) ;; Load evil after evil-leader
 (evil-mode 1)
 
-;; Keybindings
-(define-key evil-normal-state-map (kbd "<SPC> f r") 'recentf) ;; Recent files
-(define-key evil-normal-state-map (kbd "<SPC> w w") 'other-window)       ;; Cycle windows
-(define-key evil-normal-state-map (kbd "<SPC> g s") 'magit-status)       ;; Magit status
+(global-set-key (kbd "C-1") #'delete-other-windows)  ; keep this window only
+(global-set-key (kbd "C-2") #'split-window-below)    ; split horizontally
+(global-set-key (kbd "C-3") #'split-window-right)    ; split vertically
+(global-set-key (kbd "C-=") #'balance-windows)       ; balance all splits
+(global-set-key (kbd "<f4>") #'delete-window)        ; close current window
+(global-set-key (kbd "C-0") #'delete-window)        ; close current window
+(global-set-key (kbd "M-o") #'other-window)         ; go to other window
+
+;;; Window management: hjkl layers
+;; ------------------------------------------------------------
+
+;; Move focus with Meta-hjkl
+(global-set-key (kbd "M-h") #'windmove-left)
+(global-set-key (kbd "M-j") #'windmove-down)
+(global-set-key (kbd "M-k") #'windmove-up)
+(global-set-key (kbd "M-l") #'windmove-right)
+
+;; Swap windows with Meta+Shift-hjkl (Emacs 27+ has window-swap-states)
+(defun my/window-swap (dir)
+  "Swap current window with the window in direction DIR."
+  (let ((other (windmove-find-other-window dir)))
+    (when other
+      (window-swap-states (selected-window) other))))
+
+(global-set-key (kbd "M-H") (lambda () (interactive) (my/window-swap 'left)))
+(global-set-key (kbd "M-J") (lambda () (interactive) (my/window-swap 'down)))
+(global-set-key (kbd "M-K") (lambda () (interactive) (my/window-swap 'up)))
+(global-set-key (kbd "M-L") (lambda () (interactive) (my/window-swap 'right)))
+
+(global-set-key (kbd "<f5>") #'compile)
+(global-set-key (kbd "<f6>") #'recompile)
+(global-set-key (kbd "<f9>") #'magit-status)
+
+;;Reload this file
+(defun reload-init-file ()
+  "Reload ~/.emacs.d/init.el without restarting Emacs."
+  (interactive)
+  (load-file user-init-file))
+(global-set-key (kbd "<f12>") #'reload-init-file)
+
 
 (windmove-default-keybindings) ; Shift+arrow moves between windows
+
+
+ ;; Make sure consult is installed & recentf-mode is enabled
+(global-set-key (kbd "C-x C-r") #'consult-recent-file)   ;; replace vanilla recentf
+(global-set-key (kbd "C-c r")   #'consult-recent-file)   ;; mnemonic: r = recent
+
+;; Unbind M-r in Vertico’s keymap and bind to exit
+;; So that we can bind M-r to the correct function
+(with-eval-after-load 'vertico
+  (define-key vertico-map (kbd "M-r") #'vertico-exit))
+(defun my-recent-file-toggle ()
+  "Call `consult-recent-file' or quit if the minibuffer is active."
+  (interactive)
+  (if (minibufferp)
+	(abort-recursive-edit)
+    (consult-recent-file)))
+(global-set-key (kbd "M-r") #'my-recent-file-toggle)
+
+(defun my-project-find-file-toggle ()
+  "Call `consult-buffer' or quit if the minibuffer is active."
+  (interactive)
+  (if (minibufferp)
+	(abort-recursive-edit)
+    (project-find-file)))
+(global-set-key (kbd "M-f") 'my-project-find-file-toggle)
+
+(defun my-consult-buffer-toggle ()
+  "Call `consult-buffer' or quit if the minibuffer is active."
+  (interactive)
+  (if (minibufferp)
+	(abort-recursive-edit)
+    (consult-buffer))	)
+(global-set-key (kbd "M-b") 'my-consult-buffer-toggle)
+
+;; Show buffer tabs at the top of every window
+(global-tab-line-mode 1)
+(global-set-key (kbd "C-<prior>") #'tab-line-switch-to-prev-tab)
+(global-set-key (kbd "C-<next>")  #'tab-line-switch-to-next-tab)
+(global-set-key (kbd "M-{") #'tab-line-switch-to-prev-tab)
+(global-set-key (kbd "M-}") #'tab-line-switch-to-next-tab)
+
 
 ;;; init.el ends here
 (custom-set-variables
@@ -86,4 +167,4 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+)

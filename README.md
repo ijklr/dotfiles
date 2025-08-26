@@ -20,3 +20,6 @@ Clone into `~/dotfiles`:
 ```bash
 git clone git@github.com:ijklr/dotfiles.git ~/dotfiles
 cd ~/dotfiles
+
+run:
+stow emac

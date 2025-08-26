@@ -11,3 +11,5 @@
                   gc-cons-percentage 0.1
                   file-name-handler-alist my/file-name-handler-alist)))
 ;;; early-init.el ends here
+
+
