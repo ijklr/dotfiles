@@ -31,7 +31,7 @@
 ;; Theme: Modus Operandi (built-in, light and readable)
 (use-package modus-themes
   :demand t
-  :config (load-theme 'modus-operandi t))
+  :config (load-theme 'modus-operandi-tinted t))
 
 ;; Completion
 (use-package vertico :init (vertico-mode))
@@ -160,6 +160,24 @@
 (global-auto-revert-mode 1)      ; refresh file-visiting buffers automatically
 (setq global-auto-revert-non-file-buffers t)
 (setq auto-revert-check-vc-info t)
+
+;;; --- Session persistence essentials ---
+
+;; 1) Restore open files/buffers
+(desktop-save-mode 1)
+(setq desktop-save t
+      desktop-load-locked-desktop t
+      desktop-restore-eager 5)
+
+;; 2) Remember minibuffer & command history (M-x, searches, etc.)
+(savehist-mode 1)
+
+;; 3) Keep a list of recently opened files
+(recentf-mode 1)
+(setq recentf-max-saved-items 200     ; default is 20, way too small
+      recentf-max-menu-items 20
+      recentf-exclude '("/tmp/" "\\.cache/" "\\.git/"))
+
 
 
 ;;; init.el ends here
