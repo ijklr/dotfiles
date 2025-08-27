@@ -49,9 +49,9 @@
 
 ;; Report startup time
 (add-hook 'emacs-startup-hook
-  (lambda ()
-    (message "Emacs ready in %s with %d GCs."
-             (emacs-init-time) gcs-done)))
+	  (lambda ()
+	    (message "Emacs ready in %s with %d GCs."
+		     (emacs-init-time) gcs-done)))
 ;;Enable desktop-save-mode
 (desktop-save-mode 1)
 (setq desktop-restore-frames t) ;; Restore window layout
@@ -113,7 +113,7 @@
 (windmove-default-keybindings) ; Shift+arrow moves between windows
 
 
- ;; Make sure consult is installed & recentf-mode is enabled
+;; Make sure consult is installed & recentf-mode is enabled
 (global-set-key (kbd "C-x C-r") #'consult-recent-file)   ;; replace vanilla recentf
 (global-set-key (kbd "C-c r")   #'consult-recent-file)   ;; mnemonic: r = recent
 
@@ -125,7 +125,7 @@
   "Call `consult-recent-file' or quit if the minibuffer is active."
   (interactive)
   (if (minibufferp)
-	(abort-recursive-edit)
+      (abort-recursive-edit)
     (consult-recent-file)))
 (global-set-key (kbd "M-r") #'my-recent-file-toggle)
 
@@ -133,7 +133,7 @@
   "Call `consult-buffer' or quit if the minibuffer is active."
   (interactive)
   (if (minibufferp)
-	(abort-recursive-edit)
+      (abort-recursive-edit)
     (project-find-file)))
 (global-set-key (kbd "M-f") 'my-project-find-file-toggle)
 
@@ -141,16 +141,25 @@
   "Call `consult-buffer' or quit if the minibuffer is active."
   (interactive)
   (if (minibufferp)
-	(abort-recursive-edit)
+      (abort-recursive-edit)
     (consult-buffer))	)
 (global-set-key (kbd "M-b") 'my-consult-buffer-toggle)
 
-;; Show buffer tabs at the top of every window
-(global-tab-line-mode 1)
-(global-set-key (kbd "C-<prior>") #'tab-line-switch-to-prev-tab)
-(global-set-key (kbd "C-<next>")  #'tab-line-switch-to-next-tab)
-(global-set-key (kbd "M-{") #'tab-line-switch-to-prev-tab)
-(global-set-key (kbd "M-}") #'tab-line-switch-to-next-tab)
+;; Keep layout as tabs
+(global-tab-line-mode 0)   ; kill per-window buffer tabs
+(tab-bar-mode 1)           ; enable workspace tabs
+(setq tab-bar-show 1)      ; hide when only one tab
+(global-set-key (kbd "C-<prior>") #'tab-bar-switch-to-prev-tab)
+(global-set-key (kbd "C-<next>") #'tab-bar-switch-to-next-tab)
+
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+;; Good for moving file between Dired buffers
+(setq dired-dwim-target t)
+
+(global-auto-revert-mode 1)      ; refresh file-visiting buffers automatically
+(setq global-auto-revert-non-file-buffers t)
+(setq auto-revert-check-vc-info t)
 
 
 ;;; init.el ends here
@@ -161,10 +170,11 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    '(embark-consult evil-collection evil-leader magit modus-themes
-		    multiple-cursors orderless vertico)))
+		    multiple-cursors orderless vertico vterm)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
-)
+ )
+
