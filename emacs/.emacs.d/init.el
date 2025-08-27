@@ -31,7 +31,7 @@
 ;; Theme: Modus Operandi (built-in, light and readable)
 (use-package modus-themes
   :demand t
-  :config (load-theme 'modus-operandi-tinted t))
+  :config (load-theme 'modus-operandi t))
 
 ;; Completion
 (use-package vertico :init (vertico-mode))
@@ -186,6 +186,15 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("5e39e95c703e17a743fb05a132d727aa1d69d9d2c9cde9353f5350e545c793d4"
+     "77f281064ea1c8b14938866e21c4e51e4168e05db98863bd7430f1352cab294a"
+     "0adcffc4894e2dd21283672da7c3d1025b5586bcef770fdc3e2616bdb2a771cd"
+     "a9028cd93db14a5d6cdadba789563cb90a97899c4da7df6f51d58bb390e54031"
+     "7235b77f371f46cbfae9271dce65f5017b61ec1c8687a90ff30c6db281bfd6b7"
+     "1c2fb3448ce245f18c62fde3c7cfd008e69a27e88ae8a03fbb62857f13d0b6fe"
+     "6bf350570e023cd6e5b4337a6571c0325cec3f575963ac7de6832803df4d210a"
+     default))
  '(package-selected-packages
    '(embark-consult evil-collection evil-leader magit modus-themes
 		    multiple-cursors orderless vertico vterm)))
