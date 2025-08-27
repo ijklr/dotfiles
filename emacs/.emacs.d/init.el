@@ -161,18 +161,6 @@
 (setq global-auto-revert-non-file-buffers t)
 (setq auto-revert-check-vc-info t)
 
-(defun my-toggle-fullscreen ()
-  "Toggle fullscreen mode using wmctrl."
-  (interactive)
-  (unless (null (executable-find "wmctrl"))
-    (shell-command "wmctrl -r :ACTIVE: -btoggle,fullscreen")
-    ;; This next part is a small Emacs hack to ensure the state is synced.
-    (when (equal (window-system) 'x)
-      (set-frame-parameter (selected-frame) 'fullscreen
-                           (not (frame-parameter nil 'fullscreen))))))
-
-(global-set-key (kbd "<f11>") 'my-toggle-fullscreen)
-
 ;;; init.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
