@@ -102,12 +102,18 @@
 (global-set-key (kbd "<f6>") #'recompile)
 (global-set-key (kbd "<f9>") #'magit-status)
 
+(use-package counsel
+  :ensure t
+  :pin melpa
+  :bind (("C-x C-f" . counsel-find-file) ; Replace find-file
+         ("M-x" . counsel-M-x)))         ; Enhanced M-x
+
 ;;Reload this file
 (defun reload-init-file ()
   "Reload ~/.emacs.d/init.el without restarting Emacs."
   (interactive)
   (load-file user-init-file))
-(global-set-key (kbd "<f12>") #'reload-init-file)
+(global-set-key (kbd "M-<f9>") #'reload-init-file)
 
 
 (windmove-default-keybindings) ; Shift+arrow moves between windows
@@ -115,19 +121,15 @@
 
 ;; Make sure consult is installed & recentf-mode is enabled
 (global-set-key (kbd "C-x C-r") #'consult-recent-file)   ;; replace vanilla recentf
-(global-set-key (kbd "C-c r")   #'consult-recent-file)   ;; mnemonic: r = recent
+(global-set-key (kbd "C-<f10>") #'swiper)   ;; search CAPS+s
 
-;; Unbind M-r in Vertico’s keymap and bind to exit
-;; So that we can bind M-r to the correct function
-(with-eval-after-load 'vertico
-  (define-key vertico-map (kbd "M-r") #'vertico-exit))
 (defun my-recent-file-toggle ()
   "Call `consult-recent-file' or quit if the minibuffer is active."
   (interactive)
   (if (minibufferp)
       (abort-recursive-edit)
     (consult-recent-file)))
-(global-set-key (kbd "M-r") #'my-recent-file-toggle)
+(global-set-key (kbd "<f12>") #'my-recent-file-toggle)
 
 (defun my-project-find-file-toggle ()
   "Call `consult-buffer' or quit if the minibuffer is active."
@@ -135,7 +137,7 @@
   (if (minibufferp)
       (abort-recursive-edit)
     (project-find-file)))
-(global-set-key (kbd "M-f") 'my-project-find-file-toggle)
+(global-set-key (kbd "C-<f12>") 'my-project-find-file-toggle)
 
 (defun my-consult-buffer-toggle ()
   "Call `consult-buffer' or quit if the minibuffer is active."
@@ -143,7 +145,7 @@
   (if (minibufferp)
       (abort-recursive-edit)
     (consult-buffer))	)
-(global-set-key (kbd "M-b") 'my-consult-buffer-toggle)
+(global-set-key (kbd "C-x <f8>") 'my-consult-buffer-toggle)
 
 ;; Keep layout as tabs
 (global-tab-line-mode 0)   ; kill per-window buffer tabs
@@ -158,8 +160,8 @@
 (setq dired-dwim-target t)
 
 (global-auto-revert-mode 1)      ; refresh file-visiting buffers automatically
-(setq global-auto-revert-non-file-buffers t)
-(setq auto-revert-check-vc-info t)
+(setq global-auto-revert-non-file-buffers setq)
+(t auto-revert-check-vc-info t)
 
 ;;; init.el ends here
 (custom-set-variables
@@ -172,8 +174,9 @@
      "7235b77f371f46cbfae9271dce65f5017b61ec1c8687a90ff30c6db281bfd6b7"
      default))
  '(package-selected-packages
-   '(embark-consult evil-collection evil-leader magit modus-themes
-		    multiple-cursors orderless vertico vterm)))
+   '(embark-consult evil-collection evil-leader ivy-avy lsp-ivy magit
+		    modus-themes multiple-cursors orderless
+		    swiper-helm vertico vterm xwwp-follow-link-ivy)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
