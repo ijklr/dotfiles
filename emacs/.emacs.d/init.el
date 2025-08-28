@@ -180,13 +180,16 @@
    '("a9028cd93db14a5d6cdadba789563cb90a97899c4da7df6f51d58bb390e54031"
      "7235b77f371f46cbfae9271dce65f5017b61ec1c8687a90ff30c6db281bfd6b7"
      default))
+ '(menu-bar-mode nil)
  '(package-selected-packages
    '(counsel embark-consult evil-collection evil-leader magit
-	     modus-themes multiple-cursors orderless vertico vterm)))
+	     modus-themes multiple-cursors orderless vertico vterm))
+ '(tab-bar-mode t)
+ '(tool-bar-mode nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(default ((t (:family "Menlo" :foundry "nil" :slant normal :weight regular :height 180 :width normal)))))
 
