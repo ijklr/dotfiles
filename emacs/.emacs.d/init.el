@@ -1,6 +1,5 @@
 ;;; init.el --- shauncheng
 
-
 (recentf-mode 1)                     ;; turn it on
 (setq recentf-max-saved-items 1000)   ;; how many files to keep
 (setq recentf-max-menu-items 50)
@@ -40,9 +39,22 @@
   :config (load-theme 'modus-operandi t))
 
 ;; Completion
-(use-package vertico :init (vertico-mode))
 (use-package orderless :custom (completion-styles '(orderless)))
-(use-package consult)
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode))
+(use-package consult
+  :ensure t
+  :bind ("C-x b" . consult-buffer))
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))) ; Flexible matching
+(use-package marginalia
+  :ensure t
+  :init
+  (marginalia-mode)) ; Add buffer metadata
 
 ;; Git on demand
 (use-package magit
@@ -81,7 +93,12 @@
 (global-set-key (kbd "C-=") #'balance-windows)       ; balance all splits
 (global-set-key (kbd "<f4>") #'delete-window)        ; close current window
 (global-set-key (kbd "C-0") #'delete-window)        ; close current window
+(global-set-key (kbd "C-`") #'delete-window)        ; close current window
 (global-set-key (kbd "M-o") #'other-window)         ; go to other window
+(global-set-key (kbd "C-c w") #'other-window)         ; go to other window
+
+(global-set-key (kbd "C-c e") #'previous-buffer) 
+(global-set-key (kbd "C-c d") #'next-buffer) 
 
 ;;; Window management: hjkl layers
 ;; ------------------------------------------------------------
@@ -163,6 +180,12 @@
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
+
+
+;; closes old buffers
+(require 'midnight)
+(midnight-mode 1)
+
 ;; Good for moving file between Dired buffers
 (setq dired-dwim-target t)
 
@@ -182,8 +205,9 @@
      default))
  '(menu-bar-mode nil)
  '(package-selected-packages
-   '(counsel embark-consult evil-collection evil-leader magit
-	     modus-themes multiple-cursors orderless vertico vterm))
+   '(centaur-tabs counsel embark-consult evil-collection evil-leader
+		  magit marginalia modus-themes multiple-cursors
+		  orderless vertico vterm))
  '(tab-bar-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
