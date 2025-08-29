@@ -59,7 +59,7 @@
 ;; Git on demand
 (use-package magit
   :ensure t
-  :bind (("C-x g" . magit-status)))
+  :bind (("C-c a" . magit-status)))
 
 ;; LSP on demand
 (use-package eglot
@@ -91,14 +91,18 @@
 (global-set-key (kbd "C-2") #'split-window-below)    ; split horizontally
 (global-set-key (kbd "C-3") #'split-window-right)    ; split vertically
 (global-set-key (kbd "C-=") #'balance-windows)       ; balance all splits
-(global-set-key (kbd "<f4>") #'delete-window)        ; close current window
 (global-set-key (kbd "C-0") #'delete-window)        ; close current window
 (global-set-key (kbd "C-`") #'delete-window)        ; close current window
 (global-set-key (kbd "M-o") #'other-window)         ; go to other window
 (global-set-key (kbd "C-c w") #'other-window)         ; go to other window
-
 (global-set-key (kbd "C-c e") #'previous-buffer) 
 (global-set-key (kbd "C-c d") #'next-buffer) 
+
+
+;;(global-set-key (kbd "C-c c") #'window-configuration-to-register) 
+;;(global-set-key (kbd "C-c v") #'jump-to-register) 
+(global-set-key (kbd "C-c c") #'bookmark-set)
+(global-set-key (kbd "C-c v") #'bookmark-jump)
 
 ;;; Window management: hjkl layers
 ;; ------------------------------------------------------------
@@ -172,17 +176,12 @@
 (global-set-key (kbd "C-c b") 'my-consult-buffer-toggle)
 
 ;; Keep layout as tabs
-(global-tab-line-mode 0)   ; kill per-window buffer tabs
 (tab-bar-mode 1)           ; enable workspace tabs
-(setq tab-bar-show 1)      ; hide when only one tab
 (global-set-key (kbd "C-<prior>") #'tab-bar-switch-to-prev-tab)
 (global-set-key (kbd "C-<next>") #'tab-bar-switch-to-next-tab)
-
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-
-
-;; closes old buffers
+;; closes old buffers. Does this even work?
 (require 'midnight)
 (midnight-mode 1)
 
@@ -207,7 +206,7 @@
  '(package-selected-packages
    '(centaur-tabs counsel embark-consult evil-collection evil-leader
 		  magit marginalia modus-themes multiple-cursors
-		  orderless vertico vterm))
+		  orderless projectile vertico vterm))
  '(tab-bar-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
