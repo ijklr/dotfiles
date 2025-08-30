@@ -10,6 +10,13 @@
             (setq gc-cons-threshold 64000000   ;; 64 MB as integer
                   gc-cons-percentage 0.1
                   file-name-handler-alist my/file-name-handler-alist)))
+;; Minimal UI
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+
+;; Defer resize handling
+(setq frame-inhibit-implied-resize t)
 ;;; early-init.el ends here
 
 

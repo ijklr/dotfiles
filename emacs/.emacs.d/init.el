@@ -1,4 +1,8 @@
 ;;; init.el --- shauncheng
+;; Add your lisp/ dir and load the module
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+(require 'my-find-file-smart)
+
 
 (recentf-mode 1)                     ;; turn it on
 (setq recentf-max-saved-items 1000)   ;; how many files to keep
@@ -38,23 +42,30 @@
   :demand t
   :config (load-theme 'modus-operandi t))
 
-;; Completion
-(use-package orderless :custom (completion-styles '(orderless)))
+;;;; ---- Completion stack: Vertico + Orderless + Marginalia ----
 (use-package vertico
   :ensure t
-  :init
-  (vertico-mode))
-(use-package consult
-  :ensure t
-  :bind ("C-x b" . consult-buffer))
+  :init (vertico-mode 1))
+
 (use-package orderless
   :ensure t
-  :custom
-  (completion-styles '(orderless basic))) ; Flexible matching
+  :init
+  ;; Make completion styles fuzzy/subsequence-friendly
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles basic partial-completion)))))
+
 (use-package marginalia
   :ensure t
+  :init (marginalia-mode 1))
+
+;;;; ---- Consult (find, ripgrep, xref, etc.) ----
+(use-package consult
+  :ensure t
   :init
-  (marginalia-mode)) ; Add buffer metadata
+  ;; Make async sources snappy; tune if you type slowly/quickly
+  (setq consult-async-min-input 2
+        consult-async-refresh-delay 0.08))
 
 ;; Git on demand
 (use-package magit
@@ -128,12 +139,13 @@
 (global-set-key (kbd "<f5>") #'compile)
 (global-set-key (kbd "<f6>") #'recompile)
 (global-set-key (kbd "<f9>") #'magit-status)
+(global-set-key (kbd "C-c q") #'dired)
+(setq dired-mouse-drag-files t)
 
 (use-package counsel
   :ensure t
   :pin melpa
-  :bind (("C-x C-f" . counsel-find-file) ; Replace find-file
-         ("M-x" . counsel-M-x)))         ; Enhanced M-x
+  :bind (("M-x" . counsel-M-x)))         ; Enhanced M-x
 
 ;;Reload this file
 (defun reload-init-file ()
@@ -164,8 +176,9 @@
   (interactive)
   (if (minibufferp)
       (abort-recursive-edit)
-    (project-find-file)))
-(global-set-key (kbd "C-c f") 'my-project-find-file-toggle)
+    (call-interactively #'my/find-file-smart)))
+
+(global-set-key (kbd "C-c f") #'my-project-find-file-toggle)
 
 (defun my-consult-buffer-toggle ()
   "Call `consult-buffer' or quit if the minibuffer is active."
@@ -179,6 +192,9 @@
 (tab-bar-mode 1)           ; enable workspace tabs
 (global-set-key (kbd "C-<prior>") #'tab-bar-switch-to-prev-tab)
 (global-set-key (kbd "C-<next>") #'tab-bar-switch-to-next-tab)
+(global-set-key (kbd "C-c t") #'tab-bar-new-tab)
+(global-set-key (kbd "C-c x") #'tab-bar-close-tab)
+
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
 ;; closes old buffers. Does this even work?
