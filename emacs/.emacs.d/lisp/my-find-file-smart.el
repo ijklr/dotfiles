@@ -8,12 +8,13 @@
 ;;
 ;;; Commentary:
 ;; One command:
-;;   - If inside a project → `project-find-file` (fast, respects VCS ignores).
-;;   - Otherwise → `find-file` from the project root (if any) or current dir.
 
 (require 'project) ;; built-in
 
 ;;;###autoload
+
+;;   - If inside a project → `project-find-file` (fast, respects VCS ignores).
+;;   - Otherwise → `find-file` from the project root (if any) or current dir.
 (defun my/find-file-smart (&optional prompt-directory)
   "Open files with a simple project-aware behavior.
 
