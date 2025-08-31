@@ -1,6 +1,6 @@
 ;;; init.el --- shauncheng
-;; Load a private work config if it exists (no error, no message).
-(load (locate-user-emacs-file "work.el") t t)
+;; Load a local config if it exists (no error, no message).
+(load (locate-user-emacs-file "local.el") t t)
 
 
 ;; Make sure M-. / M-, are xref go-to-definition / pop-back
@@ -14,7 +14,6 @@
 (recentf-mode 1)                     ;; turn it on
 (setq recentf-max-saved-items 1000)   ;; how many files to keep
 (setq recentf-max-menu-items 50)
- 
 
 (defun my/enable-line-numbers-for-code ()
   "Enable line numbers for programming modes."
