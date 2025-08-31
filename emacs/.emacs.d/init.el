@@ -49,7 +49,6 @@
 (when (fboundp 'menu-bar-mode)
   (menu-bar-mode -1))
 
-
 ;; Theme: Modus Operandi (built-in, light and readable)
 (use-package modus-themes
   :demand t
@@ -68,16 +67,6 @@
   :init
   (marginalia-mode 1))
 
-
-;;(use-package orderless
-;;  :ensure t
-;;  :init
-;;  ;; Make completion styles fuzzy/subsequence-friendly
-;;  (setq completion-styles '(orderless basic)
-;;        completion-category-defaults nil
-;;        completion-category-overrides '((file (styles basic partial-completion)))))
-
-
 (use-package orderless
   :ensure t
   :init
@@ -85,8 +74,6 @@
   (setq completion-styles '(orderless basic)
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (partial-completion))))))
-
-
 
 
 ;;;; ---- Consult (find, ripgrep, xref, etc.) ----
@@ -102,17 +89,6 @@
 (use-package magit
   :ensure t
   :bind (("C-' a" . magit-status)))
-
-;; ;; Eglot = lightweight LSP client built into Emacs 29+ (package for 28-)
-;; (unless (require 'eglot nil 'noerror)
-;;   (package-initialize)
-;;   (unless (package-installed-p 'eglot)
-;;     (package-refresh-contents)
-;;     (package-install 'eglot))
-;;   (require 'eglot))
-
-;; (add-hook 'c-mode-hook #'eglot-ensure)
-;; (add-hook 'c++-mode-hook #'eglot-ensure)
 
 (use-package eglot
   ;; If you're on Emacs 29+, eglot is built-in, so :ensure is not needed.
@@ -137,8 +113,6 @@
 (require 'evil)
 (evil-mode 1)
 
-;; If you already have MELPA & evil set up, you can skip the package repo bits.
-
 ;; Install + wire up evil-nerd-commenter
 (use-package evil-nerd-commenter
   :after evil
@@ -148,18 +122,6 @@
   (evil-define-key 'normal prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
   (evil-define-key 'visual prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
   (evil-define-key 'normal prog-mode-map (kbd "gcc") #'evilnc-comment-or-uncomment-lines))
-;; Enable // for line comments in C (C99+)
-;;(add-hook 'c-mode-hook (lambda () (setq-local comment-start "//" comment-end "")))
-
-
-;; ;; Optional: if you use Evil, ensure the binding also works in normal/visual:
-;; (with-eval-after-load 'evil
-;;   (evil-define-key 'normal c-mode-map   (kbd "C-/") #'my-c-kernel-comment-toggle)
-;;   (evil-define-key 'visual c-mode-map   (kbd "C-/") #'my-c-kernel-comment-toggle)
-;;   (evil-define-key 'normal c++-mode-map (kbd "C-/") #'my-c-kernel-comment-toggle)
-;;   (evil-define-key 'visual c++-mode-map (kbd "C-/") #'my-c-kernel-comment-toggle))
-
-
 
 (global-set-key (kbd "C-1") #'delete-other-windows)  ; keep this window only
 (global-set-key (kbd "C-2") #'split-window-below)    ; split horizontally
@@ -266,7 +228,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     (consult-buffer)) )
 (global-set-key (kbd "C-' f") 'my-consult-buffer-toggle)
 
-
 ;; Keep layout as tabs
 (tab-bar-mode 1)           ; enable workspace tabs
 (global-set-key (kbd "C-<prior>") #'tab-bar-switch-to-prev-tab)
@@ -285,10 +246,8 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (require 'midnight)
 (midnight-mode 1)
 
-
 ;; Good for moving file between Dired buffers
 (setq dired-dwim-target t)
-
 
 (global-auto-revert-mode 1)      ; refresh file-visiting buffers automatically
 (setq global-auto-revert-non-file-buffers t)
@@ -308,7 +267,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (magit-post-refresh . diff-hl-magit-post-refresh)
   :config
   ;; Update diffs on-the-fly as you edit (instead of only on save).
-(diff-hl-flydiff-mode 1)
+  (diff-hl-flydiff-mode 1)
 
   ;; In terminals without fringes, use the margin.
   (unless (display-graphic-p)
