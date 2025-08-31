@@ -1,4 +1,4 @@
-;;; init.el --- shauncheng
+;;; init.el --- shauncheng 2025
 ;; Load a local config if it exists (no error, no message).
 (load (locate-user-emacs-file "local.el") t t)
 
@@ -127,6 +127,7 @@
 ;;Set up package management:
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
 (unless package-archive-contents
   (package-refresh-contents))
  
@@ -320,6 +321,26 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (setq global-auto-revert-non-file-buffers t)
 (setq auto-revert-check-vc-info t)
 
+;; highlight diff in realtime
+(use-package diff-hl
+  :ensure t
+  :init
+  ;; Enable everywhere (file-visiting buffers).
+  (global-diff-hl-mode 1)
+  :hook
+  ;; Show VCS changes in Dired buffers.
+  (dired-mode . diff-hl-dired-mode)
+  ;; Keep indicators correct around Magit refreshes.
+  (magit-pre-refresh  . diff-hl-magit-pre-refresh)
+  (magit-post-refresh . diff-hl-magit-post-refresh)
+  :config
+  ;; Update diffs on-the-fly as you edit (instead of only on save).
+  (diff-hl-flydiff-mode 1)
+
+  ;; In terminals without fringes, use the margin.
+  (unless (display-graphic-p)
+    (diff-hl-margin-mode 1)))
+
 
 ;;; init.el ends here
 (custom-set-variables
@@ -333,9 +354,9 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
      default))
  '(menu-bar-mode nil)
  '(package-selected-packages
-   '(centaur-tabs consult counsel evil evil-nerd-commenter helm lsp-mode
-		  magit marginalia modus-themes orderless projectile
-		  vertico-prescient))
+   '(centaur-tabs consult counsel diff-hl evil evil-nerd-commenter helm
+		  lsp-mode magit marginalia modus-themes orderless
+		  projectile vertico-prescient))
  '(tab-bar-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
@@ -344,3 +365,5 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:family "Menlo" :foundry "nil" :slant normal :weight regular :height 180 :width normal)))))
+
+
