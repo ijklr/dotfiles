@@ -1,8 +1,15 @@
 ;;; init.el --- shauncheng
-(when (string-match-p "google" (system-name))
-  (require 'google)
-  (require 'citc))
+;; Load a private work config if it exists (no error, no message).
+(load (locate-user-emacs-file "work.el") t t)
 
+
+;; Make sure M-. / M-, are xref go-to-definition / pop-back
+(global-set-key (kbd "M-.") #'xref-find-definitions)
+(global-set-key (kbd "M-,") #'xref-pop-marker-stack)
+;; Ensure these are active in normal state too:
+(with-eval-after-load 'evil
+  (define-key evil-normal-state-map (kbd "M-.") #'xref-find-definitions)
+  (define-key evil-normal-state-map (kbd "M-,") #'xref-pop-marker-stack))
 
 (recentf-mode 1)                     ;; turn it on
 (setq recentf-max-saved-items 1000)   ;; how many files to keep
@@ -95,10 +102,16 @@
   :ensure t
   :bind (("C-c a" . magit-status)))
  
+;; Eglot = lightweight LSP client built into Emacs 29+ (package for 28-)
+(unless (require 'eglot nil 'noerror)
+  (package-initialize)
+  (unless (package-installed-p 'eglot)
+    (package-refresh-contents)
+    (package-install 'eglot))
+  (require 'eglot))
 
-;; LSP on demand
-(use-package eglot
-  :hook ((c-mode c++-mode python-mode) . eglot-ensure))
+(add-hook 'c-mode-hook #'eglot-ensure)
+(add-hook 'c++-mode-hook #'eglot-ensure)
  
 
 ;; Report startup time
@@ -125,7 +138,30 @@
 (setq evil-want-C-u-scroll t)
 (require 'evil)
 (evil-mode 1)
- 
+
+;; If you already have MELPA & evil set up, you can skip the package repo bits.
+
+;; Install + wire up evil-nerd-commenter
+(use-package evil-nerd-commenter
+  :after evil
+  :bind (("C-/" . evilnc-comment-or-uncomment-lines))  ;; VSCode/JetBrains-style toggle
+  :config
+  ;; Vim-like keys: `gcc` (line), `gc{motion}` (operator), Visual `gc`
+  (evil-define-key 'normal prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
+  (evil-define-key 'visual prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
+  (evil-define-key 'normal prog-mode-map (kbd "gcc") #'evilnc-comment-or-uncomment-lines))
+;; Enable // for line comments in C (C99+)
+;;(add-hook 'c-mode-hook (lambda () (setq-local comment-start "//" comment-end "")))
+
+
+;; ;; Optional: if you use Evil, ensure the binding also works in normal/visual:
+;; (with-eval-after-load 'evil
+;;   (evil-define-key 'normal c-mode-map   (kbd "C-/") #'my-c-kernel-comment-toggle)
+;;   (evil-define-key 'visual c-mode-map   (kbd "C-/") #'my-c-kernel-comment-toggle)
+;;   (evil-define-key 'normal c++-mode-map (kbd "C-/") #'my-c-kernel-comment-toggle)
+;;   (evil-define-key 'visual c++-mode-map (kbd "C-/") #'my-c-kernel-comment-toggle))
+
+
 
 (global-set-key (kbd "C-1") #'delete-other-windows)  ; keep this window only
 (global-set-key (kbd "C-2") #'split-window-below)    ; split horizontally
@@ -137,26 +173,17 @@
 (global-set-key (kbd "C-c w") #'other-window)         ; go to other window
 (global-set-key (kbd "C-c e") #'previous-buffer) 
 (global-set-key (kbd "C-c d") #'next-buffer) 
- 
-
- 
-
 ;;(global-set-key (kbd "C-c c") #'window-configuration-to-register) 
 ;;(global-set-key (kbd "C-c v") #'jump-to-register) 
 (global-set-key (kbd "C-c c") #'bookmark-set)
 (global-set-key (kbd "C-c v") #'bookmark-jump)
- 
-
-;;; Window management: hjkl layers
-;; ------------------------------------------------------------
- 
 
 ;; Move focus with Meta-hjkl
 (global-set-key (kbd "M-h") #'windmove-left)
 (global-set-key (kbd "M-j") #'windmove-down)
 (global-set-key (kbd "M-k") #'windmove-up)
 (global-set-key (kbd "M-l") #'windmove-right)
- 
+
 
 ;; Swap windows with Meta+Shift-hjkl (Emacs 27+ has window-swap-states)
 (defun my/window-swap (dir)
@@ -164,31 +191,28 @@
   (let ((other (windmove-find-other-window dir)))
     (when other
       (window-swap-states (selected-window) other))))
- 
 
 (global-set-key (kbd "M-H") (lambda () (interactive) (my/window-swap 'left)))
 (global-set-key (kbd "M-J") (lambda () (interactive) (my/window-swap 'down)))
 (global-set-key (kbd "M-K") (lambda () (interactive) (my/window-swap 'up)))
 (global-set-key (kbd "M-L") (lambda () (interactive) (my/window-swap 'right)))
- 
+
 
 (global-set-key (kbd "<f5>") #'compile)
 (global-set-key (kbd "<f6>") #'recompile)
 (global-set-key (kbd "<f9>") #'magit-status)
 (global-set-key (kbd "C-c q") #'dired)
 (setq dired-mouse-drag-files t)
- 
 
 ;; Bootstrap use-package
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
- 
 
 (eval-when-compile
   (require 'use-package))
 (setq use-package-always-ensure t)
- 
+
 
 ;; ---- The Vertico Completion Stack ----
 ;; Add history and sorting with Prescient
@@ -196,7 +220,7 @@
   :after vertico
   :config
   (prescient-persist-mode 1))
- 
+
 
 (use-package vertico-prescient
   :after (vertico prescient)
@@ -205,7 +229,7 @@
 ;; Set the number of completions to show
 (setq vertico-count 15)
 ;; ---- END The Vertico Completion Stack ----
- 
+
 
 ;;Reload this file
 (defun reload-init-file ()
@@ -213,19 +237,13 @@
   (interactive)
   (load-file user-init-file))
 (global-set-key (kbd "<f12>") #'reload-init-file)
- 
-
- 
 
 (windmove-default-keybindings) ; Shift+arrow moves between windows
- 
-
- 
 
 ;; Make sure consult is installed & recentf-mode is enabled
 (global-set-key (kbd "C-x C-r") #'consult-recent-file)   ;; replace vanilla recentf
 (global-set-key (kbd "C-c s") #'swiper)   ;; search CAPS+s
- 
+
 
 (global-set-key (kbd "C-c g") #'keyboard-quit)  ;; same as ctrl+g  
 (defun my-recent-file-toggle ()
@@ -235,9 +253,6 @@
       (abort-recursive-edit)
     (consult-recent-file)))
 (global-set-key (kbd "C-c r") #'my-recent-file-toggle)
- 
-
- 
 
 ;;   Helper function to for find file:
 ;;   - If inside a project → `project-find-file` (fast, respects VCS ignores).
@@ -271,7 +286,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
       (abort-recursive-edit)
     (call-interactively #'my/find-file-smart)))
 (global-set-key (kbd "C-c f") #'my-project-find-file-toggle)
- 
+
 
 (defun my-consult-buffer-toggle ()
   "Call `consult-buffer' or quit if the minibuffer is active."
@@ -280,7 +295,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
       (abort-recursive-edit)
     (consult-buffer)) )
 (global-set-key (kbd "C-c b") 'my-consult-buffer-toggle)
- 
+
 
 ;; Keep layout as tabs
 (tab-bar-mode 1)           ; enable workspace tabs
@@ -288,24 +303,24 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (global-set-key (kbd "C-<next>") #'tab-bar-switch-to-next-tab)
 (global-set-key (kbd "C-c t") #'tab-bar-new-tab)
 (global-set-key (kbd "C-c x") #'tab-bar-close-tab)
- 
+
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
- 
+
 
 ;; closes old buffers. Does this even work?
 (require 'midnight)
 (midnight-mode 1)
- 
+
 
 ;; Good for moving file between Dired buffers
 (setq dired-dwim-target t)
- 
+
 
 (global-auto-revert-mode 1)      ; refresh file-visiting buffers automatically
 (setq global-auto-revert-non-file-buffers t)
 (setq auto-revert-check-vc-info t)
- 
+
 
 ;;; init.el ends here
 (custom-set-variables
@@ -318,7 +333,10 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
      "7235b77f371f46cbfae9271dce65f5017b61ec1c8687a90ff30c6db281bfd6b7"
      default))
  '(menu-bar-mode nil)
- '(package-selected-packages nil)
+ '(package-selected-packages
+   '(centaur-tabs consult counsel evil evil-nerd-commenter helm lsp-mode
+		  magit marginalia modus-themes orderless projectile
+		  vertico-prescient))
  '(tab-bar-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
