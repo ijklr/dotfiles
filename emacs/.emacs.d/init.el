@@ -267,12 +267,16 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (magit-post-refresh . diff-hl-magit-post-refresh)
   :config
   ;; Update diffs on-the-fly as you edit (instead of only on save).
-  (diff-hl-flydiff-mode 1)
+(diff-hl-flydiff-mode 1)
 
   ;; In terminals without fringes, use the margin.
   (unless (display-graphic-p)
     (diff-hl-margin-mode 1)))
 
+(use-package vdiff
+  :ensure t
+  :defer t  ; Only load when actually needed
+  :commands (vdiff-buffers vdiff-quit))
 (defun my-vdiff-with-origin-master ()
   "Compare the current buffer with its origin/master version using vdiff."
   (interactive)
@@ -307,21 +311,23 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("a9028cd93db14a5d6cdadba789563cb90a97899c4da7df6f51d58bb390e54031"
-     "7235b77f371f46cbfae9271dce65f5017b61ec1c8687a90ff30c6db281bfd6b7"
-     default))
- '(package-selected-packages
-   '(centaur-tabs consult counsel diff-hl evil evil-nerd-commenter helm
-		  lsp-mode magit marginalia modus-themes orderless
-		  projectile)))
+;; If there is more than one, they won't work right.
+  '(custom-safe-themes
+    '("a9028cd93db14a5d6cdadba789563cb90a97899c4da7df6f51d58bb390e54031"
+      "7235b77f371f46cbfae9271dce65f5017b61ec1c8687a90ff30c6db281bfd6b7"
+      default))
+  '(package-selected-packages
+    '(counsel diff-hl embark-consult evil-collection evil-leader
+	      evil-nerd-commenter ivy-avy lv magit marginalia
+	      markdown-mode modus-themes multiple-cursors orderless
+	      swiper-helm vdiff-magit vertico vterm
+	      xwwp-follow-link-ivy))
+  )
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Menlo" :foundry "nil" :slant normal :weight regular :height 180 :width normal)))))
-
+ '(default ((t (:family "Noto Sans Mono" :foundry "GOOG" :slant normal :weight regular :height 143 :width normal)))))
 
