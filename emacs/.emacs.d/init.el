@@ -19,6 +19,9 @@
 (setq use-package-always-ensure t   ;; Install packages if not present
       use-package-always-defer t)   ;; Defer loading for better startup time
 
+;; Backup settings
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups"))) ; Store backups in ~/.emacs.d/backups/
+(setq backup-by-copying t) ; Copy files for backups
 
 ;; Make sure M-. / M-, are xref go-to-definition / pop-back
 (global-set-key (kbd "M-.") #'xref-find-definitions)
@@ -60,7 +63,6 @@
   :ensure t
   :init (vertico-mode 1))
 
-
 (use-package marginalia
   :after vertico
   :ensure t
@@ -88,7 +90,7 @@
 ;; Git on demand
 (use-package magit
   :ensure t
-  :bind (("C-' a" . magit-status)))
+  :bind (("M-o a" . magit-status)))
 
 (use-package eglot
   ;; If you're on Emacs 29+, eglot is built-in, so :ensure is not needed.
@@ -123,22 +125,43 @@
   (evil-define-key 'visual prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
   (evil-define-key 'normal prog-mode-map (kbd "gcc") #'evilnc-comment-or-uncomment-lines))
 
-(global-set-key (kbd "C-1") #'delete-other-windows)  ; keep this window only
-(global-set-key (kbd "C-2") #'split-window-below)    ; split horizontally
-(global-set-key (kbd "C-3") #'split-window-right)    ; split vertically
-(global-set-key (kbd "C-=") #'balance-windows)       ; balance all splits
-(global-set-key (kbd "C-`") #'delete-window)        ; close current window
-(global-set-key (kbd "C-' w") #'other-window)         ; go to other window
-(global-set-key (kbd "C-' e") #'previous-buffer) 
-(global-set-key (kbd "C-' d") #'next-buffer) 
-(global-set-key (kbd "C-' c") #'bookmark-set)
-(global-set-key (kbd "C-' v") #'bookmark-jump)
+(keymap-global-set "C-1" 'delete-other-windows)
+(keymap-global-set "C-2" 'split-window-below)
+(keymap-global-set "C-3" 'split-window-right)
+(keymap-global-set "C-=" 'balance-windows)
+(keymap-global-set "C-`" 'delete-windows)
+
+;; Keep layout as tabs
+(tab-bar-mode 1)           ; enable workspace tabs
+(global-set-key (kbd "C-<prior>") #'tab-bar-switch-to-prev-tab)
+(global-set-key (kbd "C-<next>") #'tab-bar-switch-to-next-tab)
+
+;; Define a custom keymap for M-o
+(defvar my-custom-keymap (make-sparse-keymap)
+  "My custom keymap for M-o prefix shortcuts.")
+(keymap-global-set "M-o" my-custom-keymap)
+
+;; Define shortcuts under M-o
+(keymap-set my-custom-keymap "d" 'next-buffer)
+(keymap-set my-custom-keymap "c" 'bookmark-set)
+(keymap-set my-custom-keymap "v" 'bookmark-jump)
+(keymap-set my-custom-keymap "t" 'tab-new)
+(keymap-set my-custom-keymap "q" 'dired)
+(keymap-set my-custom-keymap "w" 'tab-close)
+(keymap-set my-custom-keymap "e" 'previous-buffer) 
+(keymap-set my-custom-keymap "s" 'swiper) 
+(keymap-set my-custom-keymap "x" 'kill-this-buffer)
+
+;; Make sure consult is installed & recentf-mode is enabled
+(keymap-global-set "C-x C-r" 'consult-recent-file)   ;; replace vanilla recentf
+(keymap-global-set "C-x C-b" 'ibuffer)
 
 ;; Move focus with Meta-hjkl
-(global-set-key (kbd "M-h") #'windmove-left)
-(global-set-key (kbd "M-j") #'windmove-down)
-(global-set-key (kbd "M-k") #'windmove-up)
-(global-set-key (kbd "M-l") #'windmove-right)
+(keymap-global-set "M-h" 'windmove-left)
+(keymap-global-set "M-j" 'windmove-down)
+(keymap-global-set "M-k" 'windmove-up)
+(keymap-global-set "M-l" 'windmove-right)
+(windmove-default-keybindings) ; Shift+arrow moves between windows
 
 
 ;; Swap windows with Meta+Shift-hjkl (Emacs 27+ has window-swap-states)
@@ -147,17 +170,19 @@
   (let ((other (windmove-find-other-window dir)))
     (when other
       (window-swap-states (selected-window) other))))
+(keymap-global-set "M-H" (lambda () (interactive) (my/window-swap 'left)))
+(keymap-global-set "M-J" (lambda () (interactive) (my/window-swap 'down)))
+(keymap-global-set "M-K" (lambda () (interactive) (my/window-swap 'up)))
+(keymap-global-set "M-L" (lambda () (interactive) (my/window-swap 'right)))
 
-(global-set-key (kbd "M-H") (lambda () (interactive) (my/window-swap 'left)))
-(global-set-key (kbd "M-J") (lambda () (interactive) (my/window-swap 'down)))
-(global-set-key (kbd "M-K") (lambda () (interactive) (my/window-swap 'up)))
-(global-set-key (kbd "M-L") (lambda () (interactive) (my/window-swap 'right)))
+;; quick “toggle to last buffer” (very popular)
+(defun sc/alternate-buffer () (interactive)
+  (switch-to-buffer (other-buffer (current-buffer) t)))
+(keymap-set my-custom-keymap "z" 'sc/alternate-buffer)
 
-
-(global-set-key (kbd "<f5>") #'compile)
-(global-set-key (kbd "<f6>") #'recompile)
-(global-set-key (kbd "<f9>") #'magit-status)
-(global-set-key (kbd "C-' q") #'dired)
+(keymap-global-set "<f5>" 'compile)
+(keymap-global-set "<f6>" 'recompile)
+(keymap-global-set "<f9>" 'magit-status)
 (setq dired-mouse-drag-files t)
 
 ;; History for M-x
@@ -168,15 +193,7 @@
   "Reload ~/.emacs.d/init.el without restarting Emacs."
   (interactive)
   (load-file user-init-file))
-(global-set-key (kbd "<f12>") #'reload-init-file)
-
-(windmove-default-keybindings) ; Shift+arrow moves between windows
-
-;; Make sure consult is installed & recentf-mode is enabled
-(global-set-key (kbd "C-x C-r") #'consult-recent-file)   ;; replace vanilla recentf
-;; hello
-(global-set-key (kbd "C-' s") #'swiper)   ;; search CAPS+s
-
+(keymap-global-set "<f12>" 'reload-init-file)
 
 (defun my-recent-file-toggle ()
   "Call `consult-recent-file' or quit if the minibuffer is active."
@@ -184,7 +201,7 @@
   (if (minibufferp)
       (abort-recursive-edit)
     (consult-recent-file)))
-(global-set-key (kbd "C-' r") #'my-recent-file-toggle)
+(keymap-set my-custom-keymap "r" 'my-recent-file-toggle) 
 
 ;;   Helper function to for find file:
 ;;   - If inside a project → `project-find-file` (fast, respects VCS ignores).
@@ -217,7 +234,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (if (minibufferp)
       (abort-recursive-edit)
     (call-interactively #'my/find-file-smart)))
-(global-set-key (kbd "C-x f") #'my-project-find-file-toggle)
+(keymap-set my-custom-keymap "f" 'my-project-find-file-toggle)
 
 
 (defun my-consult-buffer-toggle ()
@@ -226,21 +243,13 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (if (minibufferp)
       (abort-recursive-edit)
     (consult-buffer)) )
-(global-set-key (kbd "C-' f") 'my-consult-buffer-toggle)
-
-;; Keep layout as tabs
-(tab-bar-mode 1)           ; enable workspace tabs
-(global-set-key (kbd "C-<prior>") #'tab-bar-switch-to-prev-tab)
-(global-set-key (kbd "C-<next>") #'tab-bar-switch-to-next-tab)
-(global-set-key (kbd "C-' z") #'tab-bar-new-tab)
-(global-set-key (kbd "C-' x") #'kill-this-buffer) 
-(global-set-key (kbd "C-' b") 'ibuffer)
+(keymap-set my-custom-keymap "b" 'my-consult-buffer-toggle)
 
 (defun indent-whole-buffer ()
   "Indent the entire buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
-(global-set-key (kbd "<f8>") #'indent-whole-buffer)
+(keymap-global-set "<f8>" 'indent-whole-buffer)
 
 ;; closes old buffers. Does this even work?
 (require 'midnight)
@@ -303,26 +312,43 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 	   (my-vdiff-with-origin-master))
     )
   )
+(keymap-global-set "<f7>" 'my-vdiff-toggle-or-quit)
 
-(global-set-key (kbd "<f7>") 'my-vdiff-toggle-or-quit)
+(use-package vterm :ensure t)
+(use-package dirvish :init (dirvish-override-dired-mode 1))
+
+;; Popup for easy discoverability
+(which-key-mode t)
+
+;; Column number display
+(column-number-mode 1)
+
+;; Column 80 indicator
+(setq-default fill-column 80)
+(keymap-set my-custom-keymap "l" 'display-fill-column-indicator-mode)
+
+(setq-default fill-column-indicator-character ?\u2502) ; Thin vertical bar
+
+(set-face-attribute 'fill-column-indicator nil
+                    :foreground "#f0ffff" ; azure1  (M-x list-colors-display)
+                    :background "#f0ffff" ;
+                    :weight 'light)
+
 
 ;;; init.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
-;; If there is more than one, they won't work right.
-  '(custom-safe-themes
-    '("a9028cd93db14a5d6cdadba789563cb90a97899c4da7df6f51d58bb390e54031"
-      "7235b77f371f46cbfae9271dce65f5017b61ec1c8687a90ff30c6db281bfd6b7"
-      default))
-  '(package-selected-packages
-    '(counsel diff-hl embark-consult evil-collection evil-leader
-	      evil-nerd-commenter ivy-avy lv magit marginalia
-	      markdown-mode modus-themes multiple-cursors orderless
-	      swiper-helm vdiff-magit vertico vterm
-	      xwwp-follow-link-ivy))
-  )
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("a9028cd93db14a5d6cdadba789563cb90a97899c4da7df6f51d58bb390e54031"
+     "7235b77f371f46cbfae9271dce65f5017b61ec1c8687a90ff30c6db281bfd6b7"
+     default))
+ '(package-selected-packages
+   '(centaur-tabs consult counsel deadgrep diff-hl dirvish evil
+		  evil-nerd-commenter helm lsp-mode magit marginalia
+		  modus-themes orderless projectile ripgrep vterm)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
