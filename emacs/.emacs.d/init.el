@@ -1,4 +1,8 @@
 ;;; init.el --- shauncheng 2025
+;; Custom file
+(setq custom-file (locate-user-emacs-file "custom.el"))
+(load custom-file 'noerror 'nomessage)
+
 ;; Load a local config if it exists (no error, no message).
 (load (locate-user-emacs-file "local.el") t t)
 
@@ -129,7 +133,7 @@
 (keymap-global-set "C-2" 'split-window-below)
 (keymap-global-set "C-3" 'split-window-right)
 (keymap-global-set "C-=" 'balance-windows)
-(keymap-global-set "C-`" 'delete-windows)
+(keymap-global-set "C-`" 'delete-window)
 
 ;; Keep layout as tabs
 (tab-bar-mode 1)           ; enable workspace tabs
@@ -146,14 +150,14 @@
 (keymap-set my-custom-keymap "c" 'bookmark-set)
 (keymap-set my-custom-keymap "v" 'bookmark-jump)
 (keymap-set my-custom-keymap "t" 'tab-new)
+(keymap-set my-custom-keymap "a" 'magit-status)
 (keymap-set my-custom-keymap "q" 'dired)
 (keymap-set my-custom-keymap "w" 'tab-close)
 (keymap-set my-custom-keymap "e" 'previous-buffer) 
-(keymap-set my-custom-keymap "s" 'swiper) 
+(keymap-set my-custom-keymap "s" 'consult-line) 
 (keymap-set my-custom-keymap "x" 'kill-this-buffer)
 
 ;; Make sure consult is installed & recentf-mode is enabled
-(keymap-global-set "C-x C-r" 'consult-recent-file)   ;; replace vanilla recentf
 (keymap-global-set "C-x C-b" 'ibuffer)
 
 ;; Move focus with Meta-hjkl
@@ -177,12 +181,11 @@
 
 ;; quick “toggle to last buffer” (very popular)
 (defun sc/alternate-buffer () (interactive)
-  (switch-to-buffer (other-buffer (current-buffer) t)))
+       (switch-to-buffer (other-buffer (current-buffer) t)))
 (keymap-set my-custom-keymap "z" 'sc/alternate-buffer)
 
 (keymap-global-set "<f5>" 'compile)
 (keymap-global-set "<f6>" 'recompile)
-(keymap-global-set "<f9>" 'magit-status)
 (setq dired-mouse-drag-files t)
 
 ;; History for M-x
@@ -251,10 +254,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (indent-region (point-min) (point-max)))
 (keymap-global-set "<f8>" 'indent-whole-buffer)
 
-;; closes old buffers. Does this even work?
-(require 'midnight)
-(midnight-mode 1)
-
 ;; Good for moving file between Dired buffers
 (setq dired-dwim-target t)
 
@@ -276,7 +275,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (magit-post-refresh . diff-hl-magit-post-refresh)
   :config
   ;; Update diffs on-the-fly as you edit (instead of only on save).
-(diff-hl-flydiff-mode 1)
+  (diff-hl-flydiff-mode 1)
 
   ;; In terminals without fringes, use the margin.
   (unless (display-graphic-p)
@@ -325,7 +324,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 
 ;; Column 80 indicator
 (setq-default fill-column 80)
-(keymap-set my-custom-keymap "l" 'display-fill-column-indicator-mode)
 
 (setq-default fill-column-indicator-character ?\u2502) ; Thin vertical bar
 
@@ -334,26 +332,4 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
                     :background "#f0ffff" ;
                     :weight 'light)
 
-
-;;; init.el ends here
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("a9028cd93db14a5d6cdadba789563cb90a97899c4da7df6f51d58bb390e54031"
-     "7235b77f371f46cbfae9271dce65f5017b61ec1c8687a90ff30c6db281bfd6b7"
-     default))
- '(package-selected-packages
-   '(centaur-tabs consult counsel deadgrep diff-hl dirvish evil
-		  evil-nerd-commenter helm lsp-mode magit marginalia
-		  modus-themes orderless projectile ripgrep vterm)))
-
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:family "Noto Sans Mono" :foundry "GOOG" :slant normal :weight regular :height 143 :width normal)))))
 
