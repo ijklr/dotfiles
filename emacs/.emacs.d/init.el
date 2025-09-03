@@ -351,3 +351,55 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 ;;TTY fixes
 (keymap-global-set "C-@" 'split-window-below)
 
+(keymap-global-set "<f2>" 'other-window)
+
+;; Always make cursor yellow, regardless of theme or mode
+(defun my/set-yellow-cursor (&rest _)
+  "Force cursor to be yellow in all contexts."
+  ;; Basic cursor face (overrides theme)
+  (set-face-attribute 'cursor nil :background "yellow")
+  ;; If using Evil, keep state shapes but enforce yellow
+  (when (boundp 'evil-normal-state-cursor)
+    (setq evil-normal-state-cursor '(("yellow" box)))
+    (setq evil-insert-state-cursor '(("yellow" bar)))
+    (setq evil-visual-state-cursor '(("yellow" hbar)))))
+
+;; Run it now
+(my/set-yellow-cursor)
+
+;; Re-run whenever a theme is enabled (themes override faces)
+(advice-add 'enable-theme :after #'my/set-yellow-cursor)
+
+
+
+
+
+
+;; From Alasdair:
+( defun my-word-under-cursor ()
+
+  "Returns the word under the cursor"
+  (interactive)
+
+  (buffer-substring (save-excursion
+		      (skip-chars-backward "-$#~/\\\\_a-zA-Z0-9")
+		      (point))
+		    (save-excursion
+		      (skip-chars-forward "-#~/\\\\_a-zA-Z0-9")
+		      (if (or (eq (preceding-char) ?.) (eq (preceding-char) ?-))
+			  (1- (point))
+			(point)))))
+
+
+;; Search forward for the string under the cursor.
+;; Puts the string into the isearch list, so the next
+;; time you hit ctrl-S it caries on searching
+(defun my-search ()
+  "Do a search on the word under the cursor"
+  (interactive)
+  (isearch-update-ring (my-word-under-cursor))
+  (search-forward (car search-ring)))
+;; research on the usefulness of this before enabling
+;; probably no need.
+
+;; (keymap-global-set "<f2>" 'my-search)
