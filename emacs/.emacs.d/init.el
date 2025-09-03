@@ -136,6 +136,12 @@
 (keymap-global-set "C-2" 'split-window-below)
 (keymap-global-set "C-3" 'split-window-right)
 (keymap-global-set "C-=" 'balance-windows)
+;; TTY fix
+(keymap-global-set "<f1>" 'delete-other-windows)
+(keymap-global-set "<f2>" 'split-window-below)
+(keymap-global-set "<f3>" 'split-window-right)
+(keymap-global-set "<f4>" 'delete-window)
+;;(keymap-global-set "<f>" 'balance-windows)
 
 ;; Keep layout as tabs
 (tab-bar-mode 1)           ; enable workspace tabs
@@ -350,8 +356,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 
 ;;TTY fixes
 (keymap-global-set "C-@" 'split-window-below)
-
-(keymap-global-set "<f2>" 'other-window)
+(keymap-global-set "<z>" 'other-window)
 
 ;; From Alasdair:
 ( defun my-word-under-cursor ()
