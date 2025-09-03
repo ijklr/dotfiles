@@ -358,6 +358,11 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (keymap-global-set "C-@" 'split-window-below)
 (keymap-global-set "<z>" 'other-window)
 
+;; Modeline
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1))
+
 ;; From Alasdair:
 ( defun my-word-under-cursor ()
 
@@ -481,3 +486,4 @@ Version: 2024-05-20"
          (t (progn
               (message "File does not exist. Created at\n%s" xpathNoQ)
               (find-file xpathNoQ))))))))
+
