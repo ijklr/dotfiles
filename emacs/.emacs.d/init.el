@@ -365,30 +365,11 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   ;; Install fonts once with: M-x all-the-icons-install-fonts
   )
 
-(use-package doom-modeline
+(use-package mood-line
   :ensure t
-  :init
-  (doom-modeline-mode 1)
-  :custom
-  ;; Icons look nice, but fall back to text if fonts not available
-  (doom-modeline-icon (display-graphic-p))
-  ;; Show major mode icon (e.g. λ for Emacs Lisp, C++ icon, etc.)
-  (doom-modeline-major-mode-icon t)
-  ;; Shorten long paths in buffer name
-  (doom-modeline-buffer-file-name-style 'truncate-with-project)
-  ;; Don’t show Python/Node version in modeline (keeps it clean)
-  (doom-modeline-env-version nil)
-  ;; How long git branch name can be
-  (doom-modeline-vcs-max-length 12)
-  )
-
-;; Optional: If you want to refresh fonts automatically on startup
-(when (and (display-graphic-p)
-           (not (member "all-the-icons" (font-family-list))))
-  (message "⚠️  Run M-x all-the-icons-install-fonts to see icons correctly."))
-
-
-
+  :init (mood-line-mode 1))
+;; Optional for icons in some segments:
+;; (use-package nerd-icons :ensure t)
 
 ;; From Alasdair:
 ( defun my-word-under-cursor ()
