@@ -19,6 +19,9 @@
 
 (eval-when-compile (require 'use-package))
 
+;; M-x must go through TTY
+(keymap-set global-map "<f9>" #'execute-extended-command)
+
 ;; Configure use-package defaults
 (setq use-package-always-ensure t   ;; Install packages if not present
       use-package-always-defer t)   ;; Defer loading for better startup time
@@ -28,8 +31,8 @@
 (setq backup-by-copying t) ; Copy files for backups
 
 ;; Make sure M-. / M-, are xref go-to-definition / pop-back
-(global-set-key (kbd "M-.") #'xref-find-definitions)
-(global-set-key (kbd "M-,") #'xref-pop-marker-stack)
+(keymap-global-set "M-." 'xref-find-definitions)
+(keymap-global-set "M-," 'xref-pop-marker-stack)
 ;; Ensure these are active in normal state too:
 (with-eval-after-load 'evil
   (define-key evil-normal-state-map (kbd "M-.") #'xref-find-definitions)
@@ -133,38 +136,11 @@
 (keymap-global-set "C-2" 'split-window-below)
 (keymap-global-set "C-3" 'split-window-right)
 (keymap-global-set "C-=" 'balance-windows)
-(keymap-global-set "C-`" 'delete-window)
-;; (use-package general
-;;   :config
-;;   (general-define-key
-;;    :states '(normal visual emacs)
-;;    :prefix "SPC"
-;;    "SPC" 'execute-extended-command   ;; SPC SPC = M-x
-;;    "2"   'split-window-below))       ;; SPC 2   = split window horizontally
-
-;; Ensure Evil is loaded first
-(use-package evil
-  :ensure t
-  :config
-  (evil-mode 1)
-
-  ;; Step 1: define a prefix map for SPC
-  (define-prefix-command 'my/evil-space-prefix)
-
-  ;; Step 2: install it into Evil's normal + visual state maps
-  (keymap-set evil-normal-state-map "SPC" my/evil-space-prefix)
-  (keymap-set evil-visual-state-map "SPC" my/evil-space-prefix)
-
-  ;; Step 3: add bindings under SPC
-  (keymap-set evil-normal-state-map "SPC SPC" #'execute-extended-command) ;; M-x
-  (keymap-set evil-normal-state-map "SPC 2"   #'split-window-below)       ;; split below
-  (keymap-set evil-normal-state-map "SPC 3"   #'split-window-right))      ;; split right
-
 
 ;; Keep layout as tabs
 (tab-bar-mode 1)           ; enable workspace tabs
-(global-set-key (kbd "C-<prior>") #'tab-bar-switch-to-prev-tab)
-(global-set-key (kbd "C-<next>") #'tab-bar-switch-to-next-tab)
+(keymap-global-set "C-<prior>" 'tab-bar-switch-to-prev-tab)
+(keymap-global-set "C-<next>" 'tab-bar-switch-to-next-tab)
 
 ;; Define a custom keymap for M-o
 (defvar my-custom-keymap (make-sparse-keymap)
@@ -177,8 +153,8 @@
 (keymap-set my-custom-keymap "v" 'bookmark-jump)
 (keymap-set my-custom-keymap "t" 'tab-new)
 (keymap-set my-custom-keymap "a" 'magit-status)
-(keymap-set my-custom-keymap "q" 'dired)
 (keymap-set my-custom-keymap "w" 'tab-close)
+(keymap-set my-custom-keymap "q" 'delete-window)
 (keymap-set my-custom-keymap "e" 'previous-buffer) 
 (keymap-set my-custom-keymap "s" 'consult-line) 
 (keymap-set my-custom-keymap "x" 'kill-this-buffer)
@@ -191,6 +167,11 @@
 (keymap-global-set "M-j" 'windmove-down)
 (keymap-global-set "M-k" 'windmove-up)
 (keymap-global-set "M-l" 'windmove-right)
+(keymap-global-set "C-c h" 'windmove-left)
+(keymap-global-set "C-c j" 'windmove-down)
+(keymap-global-set "C-c k" 'windmove-up)
+(keymap-global-set "C-c l" 'windmove-right)
+
 (windmove-default-keybindings) ; Shift+arrow moves between windows
 
 
@@ -358,4 +339,3 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
                     :background "#f0ffff" ;
                     :weight 'light)
  
-
