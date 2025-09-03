@@ -335,7 +335,10 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (setq-default fill-column-indicator-character ?\u2502) ; Thin vertical bar
 
 (set-face-attribute 'fill-column-indicator nil
-                    :foreground "#f0ffff" ; azure1  (M-x list-colors-display)
+                    :forøaeground "#f0ffff" ; azure1  (M-x list-colors-display)
                     :background "#f0ffff" ;
                     :weight 'light)
  
+;; highlight current line
+(global-hl-line-mode 1)
+(set-face-background 'hl-line "#d7ffff") ; Replace with your desired color code
