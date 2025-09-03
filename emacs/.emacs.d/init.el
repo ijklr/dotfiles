@@ -358,10 +358,37 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (keymap-global-set "C-@" 'split-window-below)
 (keymap-global-set "<z>" 'other-window)
 
-;; Modeline
+
+;; --- Doom Modeline Setup ---
+(use-package all-the-icons
+  :ensure t
+  ;; Install fonts once with: M-x all-the-icons-install-fonts
+  )
+
 (use-package doom-modeline
   :ensure t
-  :init (doom-modeline-mode 1))
+  :init
+  (doom-modeline-mode 1)
+  :custom
+  ;; Icons look nice, but fall back to text if fonts not available
+  (doom-modeline-icon (display-graphic-p))
+  ;; Show major mode icon (e.g. λ for Emacs Lisp, C++ icon, etc.)
+  (doom-modeline-major-mode-icon t)
+  ;; Shorten long paths in buffer name
+  (doom-modeline-buffer-file-name-style 'truncate-with-project)
+  ;; Don’t show Python/Node version in modeline (keeps it clean)
+  (doom-modeline-env-version nil)
+  ;; How long git branch name can be
+  (doom-modeline-vcs-max-length 12)
+  )
+
+;; Optional: If you want to refresh fonts automatically on startup
+(when (and (display-graphic-p)
+           (not (member "all-the-icons" (font-family-list))))
+  (message "⚠️  Run M-x all-the-icons-install-fonts to see icons correctly."))
+
+
+
 
 ;; From Alasdair:
 ( defun my-word-under-cursor ()
