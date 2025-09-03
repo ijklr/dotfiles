@@ -146,6 +146,7 @@
 (defvar my-custom-keymap (make-sparse-keymap)
   "My custom keymap for M-o prefix shortcuts.")
 (keymap-global-set "M-o" my-custom-keymap)
+(keymap-global-set "ø" my-custom-keymap)
 
 ;; Define shortcuts under M-o
 (keymap-set my-custom-keymap "d" 'next-buffer)
@@ -335,10 +336,18 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (setq-default fill-column-indicator-character ?\u2502) ; Thin vertical bar
 
 (set-face-attribute 'fill-column-indicator nil
-                    :forøaeground "#f0ffff" ; azure1  (M-x list-colors-display)
+                    :foreground "#f0ffff" ; azure1  (M-x list-colors-display)
                     :background "#f0ffff" ;
                     :weight 'light)
- 
+
 ;; highlight current line
 (global-hl-line-mode 1)
 (set-face-background 'hl-line "#d7ffff") ; Replace with your desired color code
+
+;;enable mouse in terminal
+(unless (display-graphic-p)
+  (xterm-mouse-mode 1))
+
+;;TTY fixes
+(keymap-global-set "C-@" 'split-window-below)
+
