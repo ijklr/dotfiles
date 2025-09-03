@@ -94,7 +94,7 @@
 ;; Git on demand
 (use-package magit
   :ensure t
-  :bind (("M-o a" . magit-status)))
+  :bind (("C-x g" . magit-status)))
 
 (use-package eglot
   ;; If you're on Emacs 29+, eglot is built-in, so :ensure is not needed.
@@ -134,6 +134,32 @@
 (keymap-global-set "C-3" 'split-window-right)
 (keymap-global-set "C-=" 'balance-windows)
 (keymap-global-set "C-`" 'delete-window)
+;; (use-package general
+;;   :config
+;;   (general-define-key
+;;    :states '(normal visual emacs)
+;;    :prefix "SPC"
+;;    "SPC" 'execute-extended-command   ;; SPC SPC = M-x
+;;    "2"   'split-window-below))       ;; SPC 2   = split window horizontally
+
+;; Ensure Evil is loaded first
+(use-package evil
+  :ensure t
+  :config
+  (evil-mode 1)
+
+  ;; Step 1: define a prefix map for SPC
+  (define-prefix-command 'my/evil-space-prefix)
+
+  ;; Step 2: install it into Evil's normal + visual state maps
+  (keymap-set evil-normal-state-map "SPC" my/evil-space-prefix)
+  (keymap-set evil-visual-state-map "SPC" my/evil-space-prefix)
+
+  ;; Step 3: add bindings under SPC
+  (keymap-set evil-normal-state-map "SPC SPC" #'execute-extended-command) ;; M-x
+  (keymap-set evil-normal-state-map "SPC 2"   #'split-window-below)       ;; split below
+  (keymap-set evil-normal-state-map "SPC 3"   #'split-window-right))      ;; split right
+
 
 ;; Keep layout as tabs
 (tab-bar-mode 1)           ; enable workspace tabs
@@ -331,5 +357,5 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
                     :foreground "#f0ffff" ; azure1  (M-x list-colors-display)
                     :background "#f0ffff" ;
                     :weight 'light)
-
+ 
 
