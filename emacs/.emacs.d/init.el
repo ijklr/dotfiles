@@ -353,28 +353,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 
 (keymap-global-set "<f2>" 'other-window)
 
-;; Always make cursor yellow, regardless of theme or mode
-(defun my/set-yellow-cursor (&rest _)
-  "Force cursor to be yellow in all contexts."
-  ;; Basic cursor face (overrides theme)
-  (set-face-attribute 'cursor nil :background "yellow")
-  ;; If using Evil, keep state shapes but enforce yellow
-  (when (boundp 'evil-normal-state-cursor)
-    (setq evil-normal-state-cursor '(("yellow" box)))
-    (setq evil-insert-state-cursor '(("yellow" bar)))
-    (setq evil-visual-state-cursor '(("yellow" hbar)))))
-
-;; Run it now
-(my/set-yellow-cursor)
-
-;; Re-run whenever a theme is enabled (themes override faces)
-(advice-add 'enable-theme :after #'my/set-yellow-cursor)
-
-
-
-
-
-
 ;; From Alasdair:
 ( defun my-word-under-cursor ()
 
@@ -402,4 +380,3 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 ;; research on the usefulness of this before enabling
 ;; probably no need.
 
-;; (keymap-global-set "<f2>" 'my-search)
