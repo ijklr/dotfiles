@@ -59,11 +59,10 @@
 (when (fboundp 'menu-bar-mode)
   (menu-bar-mode -1))
 
-;; Theme: Modus Operandi (built-in, light and readable)
-(use-package modus-themes
-  :demand t
-  :config (load-theme 'modus-operandi t))
-
+;; Theme: Modus Operandi Deu
+ (use-package modus-themes
+   :demand t
+   :config (load-theme 'modus-operandi-deuteranopia t))
 
 ;;;; ---- Completion stack: Vertico + Orderless + Marginalia ----
 (use-package vertico
@@ -494,4 +493,8 @@ Version: 2024-05-20"
          (t (progn
               (message "File does not exist. Created at\n%s" xpathNoQ)
               (find-file xpathNoQ))))))))
+
+
+
+
 
