@@ -60,9 +60,11 @@
   (menu-bar-mode -1))
 
 ;; Theme: Modus Operandi Deu
- (use-package modus-themes
-   :demand t
-   :config (load-theme 'modus-operandi-deuteranopia t))
+;; (use-package modus-themes
+;;   :demand t
+;;   :config (load-theme 'modus-operandi-deuteranopia t))
+(load-theme 'leuven t)
+
 
 ;;;; ---- Completion stack: Vertico + Orderless + Marginalia ----
 (use-package vertico
