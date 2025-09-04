@@ -200,7 +200,14 @@
 (keymap-set my-custom-keymap "z" 'sc/alternate-buffer)
 
 (keymap-global-set "<f5>" 'compile)
-(keymap-global-set "<f6>" 'recompile)
+;;(keymap-global-set "<f6>" 'recompile)
+;; F6: run ./a.out
+(defun my-run-aout ()
+  "Run ./a.out asynchronously."
+  (interactive)
+  (async-shell-command "./a.out"))
+(keymap-global-set "<f6>" 'my-run-aout)
+
 (setq dired-mouse-drag-files t)
 
 ;; History for M-x
@@ -495,8 +502,4 @@ Version: 2024-05-20"
          (t (progn
               (message "File does not exist. Created at\n%s" xpathNoQ)
               (find-file xpathNoQ))))))))
-
-
-
-
 
