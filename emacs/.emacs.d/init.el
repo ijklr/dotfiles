@@ -67,6 +67,7 @@
 
 
 ;;;; ---- Completion stack: Vertico + Orderless + Marginalia ----
+(require 'vertico)
 (use-package vertico
   :ensure t
   :init (vertico-mode 1))
@@ -505,3 +506,7 @@ Version: 2024-05-20"
               (message "File does not exist. Created at\n%s" xpathNoQ)
               (find-file xpathNoQ))))))))
 
+
+;;Enable Clipboard Access: In iTerm2, go to iTerm2 > Preferences (or Settings), select the Selection tab. Check the box for "Applications in terminal may access clipboard".
+;; need this for copy from terminal to local clipboard
+(setq xterm-extra-capabilities '(setSelection))
