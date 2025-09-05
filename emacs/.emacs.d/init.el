@@ -132,6 +132,9 @@
   (evil-define-key 'normal prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
   (evil-define-key 'visual prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
   (evil-define-key 'normal prog-mode-map (kbd "gcc") #'evilnc-comment-or-uncomment-lines))
+;; Make <f12> behave exactly like C-/
+(define-key key-translation-map (kbd "<f12>") (kbd "C-/"))
+
 
 (keymap-global-set "C-1" 'delete-other-windows)
 (keymap-global-set "C-2" 'split-window-below)
@@ -218,7 +221,6 @@
   "Reload ~/.emacs.d/init.el without restarting Emacs."
   (interactive)
   (load-file user-init-file))
-(keymap-global-set "<f12>" 'reload-init-file)
 
 (defun my-recent-file-toggle ()
   "Call `consult-recent-file' or quit if the minibuffer is active."
