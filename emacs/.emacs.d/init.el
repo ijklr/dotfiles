@@ -20,7 +20,7 @@
 (eval-when-compile (require 'use-package))
 
 ;; M-x must go through TTY
-(keymap-set global-map "<f9>" #'execute-extended-command)
+(keymap-set global-map "<f9>" #'counsel-M-x)
 
 ;; Configure use-package defaults
 (setq use-package-always-ensure t   ;; Install packages if not present
@@ -66,25 +66,25 @@
 (load-theme 'leuven t)
 
 
-;;;; ---- Completion stack: Vertico + Orderless + Marginalia ----
-(require 'vertico)
-(use-package vertico
-  :ensure t
-  :init (vertico-mode 1))
-
-(use-package marginalia
-  :after vertico
-  :ensure t
-  :init
-  (marginalia-mode 1))
-
-(use-package orderless
-  :ensure t
-  :init
-  ;; This is the magic line that enables the fuzzy matching
-  (setq completion-styles '(orderless basic)
-        completion-category-defaults nil
-        completion-category-overrides '((file (styles . (partial-completion))))))
+;;;;;; ---- Completion stack: Vertico + Orderless + Marginalia ----
+;;(require 'vertico)
+;;(use-package vertico
+;;  :ensure t
+;;  :init (vertico-mode 1))
+;;
+;;(use-package marginalia
+;;  :after vertico
+;;  :ensure t
+;;  :init
+;;  (marginalia-mode 1))
+;;
+;;(use-package orderless
+;;  :ensure t
+;;  :init
+;;  ;; This is the magic line that enables the fuzzy matching
+;;  (setq completion-styles '(orderless basic)
+;;        completion-category-defaults nil
+;;        completion-category-overrides '((file (styles . (partial-completion))))))
 
 
 ;;;; ---- Consult (find, ripgrep, xref, etc.) ----
@@ -510,3 +510,19 @@ Version: 2024-05-20"
 ;;Enable Clipboard Access: In iTerm2, go to iTerm2 > Preferences (or Settings), select the Selection tab. Check the box for "Applications in terminal may access clipboard".
 ;; need this for copy from terminal to local clipboard
 (setq xterm-extra-capabilities '(setSelection))
+
+(require 'ivy)
+(require 'counsel)
+
+(ivy-mode 1)
+(counsel-mode 1)
+
+;; Optional: Enable rich completion annotations
+;;(require 'ivy-rich)
+;;(ivy-rich-mode 1)
+
+;; Example keybindings (customize as you like)
+(global-set-key (kbd "C-s") 'swiper-isearch)
+(global-set-key (kbd "M-x") 'counsel-M-x)
+(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+(global-set-key (kbd "C-x b") 'ivy-switch-buffer)
