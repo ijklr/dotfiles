@@ -183,13 +183,6 @@
 (column-number-mode 1)
 (global-auto-revert-mode 1)
 
-
-
-;; ;; Bootstrap 'use-package'
-;; (unless (package-installed-p 'use-package)
-;;   (package-refresh-contents)
-;;   (package-install 'use-package))
-
 ;; (eval-when-compile (require 'use-package))
 
 ;; M-x must go through TTY
@@ -200,17 +193,17 @@
 (setq backup-directory-alist '(("." . "~/.emacs.d/backups"))) ; Store backups in ~/.emacs.d/backups/
 (setq backup-by-copying t) ; Copy files for backups
 
-;; ;; Make sure M-. / M-, are xref go-to-definition / pop-back
-;; (keymap-global-set "M-." 'xref-find-definitions)
-;; (keymap-global-set "M-," 'xref-pop-marker-stack)
-;; ;; Ensure these are active in normal state too:
-;; (with-eval-after-load 'evil
-;;   (define-key evil-normal-state-map (kbd "M-.") #'xref-find-definitions)
-;;   (define-key evil-normal-state-map (kbd "M-,") #'xref-pop-marker-stack))
+;; Make sure M-. / M-, are xref go-to-definition / pop-back
+(keymap-global-set "M-." 'xref-find-definitions)
+(keymap-global-set "M-," 'xref-pop-marker-stack)
+;; Ensure these are active in normal state too:
+(with-eval-after-load 'evil
+  (define-key evil-normal-state-map (kbd "M-.") #'xref-find-definitions)
+  (define-key evil-normal-state-map (kbd "M-,") #'xref-pop-marker-stack))
 
-;; (recentf-mode 1)                     ;; turn it on
-;; (setq recentf-max-saved-items 1000)   ;; how many files to keep
-;; (setq recentf-max-menu-items 50)
+(recentf-mode 1)                     ;; turn it on
+(setq recentf-max-saved-items 1000)   ;; how many files to keep
+(setq recentf-max-menu-items 50)
 
 (defun my/enable-line-numbers-for-code ()
   "Enable line numbers for programming modes."
