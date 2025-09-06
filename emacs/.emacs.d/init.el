@@ -6,41 +6,211 @@
 ;; Load a local config if it exists (no error, no message).
 (load (locate-user-emacs-file "local.el") t t)
 
-;; --- Package Management (use-package) ---
+
+;; ----------------------------------------------------------------------------
+;; 1. Package Management
+;; ----------------------------------------------------------------------------
+(setq package-enable-at-startup nil)
+
+(when (boundp 'gnutls-algorithm-priority)
+  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3"))
+
 (require 'package)
-;; Add MELPA in addition to the default GNU ELPA
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("gnu"   . "https://elpa.gnu.org/packages/")))
+
 (package-initialize)
 
-;; Bootstrap 'use-package'
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+(unless package-archive-contents
+  (message "Refreshing package archives...")
+  (condition-case err
+      (package-refresh-contents)
+    (error (message "Package refresh failed: %s." err))))
 
-(eval-when-compile (require 'use-package))
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+(require 'use-package)
+(setq use-package-always-ensure t)
+
+;; ----------------------------------------------------------------------------
+;; 2. Evil Mode (Vim keybindings)
+;; ----------------------------------------------------------------------------
+(use-package evil
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  :config
+  (evil-mode 1)
+  (define-key evil-normal-state-map (kbd "C-g") 'keyboard-quit)
+  (define-key evil-visual-state-map (kbd "C-g") 'keyboard-quit))
+
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
+
+(setq evil-want-C-u-scroll t)
+
+;; Install + wire up evil-nerd-commenter
+(use-package evil-nerd-commenter
+  :after evil
+  :bind (("C-/" . evilnc-comment-or-uncomment-lines))  ;; VSCode/JetBrains-style toggle
+  :config
+  ;; Vim-like keys: `gcc` (line), `gc{motion}` (operator), Visual `gc`
+  (evil-define-key 'normal prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
+  (evil-define-key 'visual prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
+  (evil-define-key 'normal prog-mode-map (kbd "gcc") #'evilnc-comment-or-uncomment-lines))
+;; Make <f12> behave exactly like C-/
+(define-key key-translation-map (kbd "<f12>") (kbd "C-/"))
+
+;; ----------------------------------------------------------------------------
+;; 3. Modern Completion System: Vertico, Consult, Embark, Orderless, etc.
+;; ----------------------------------------------------------------------------
+
+;; Orderless for completion styles
+(use-package orderless
+  :ensure t
+  :init
+ ;; This is the magic line that enables the fuzzy matching
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles . (partial-completion))))))
+
+;; Vertico for vertical completion UI
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode)
+  (define-key vertico-map (kbd "C-j") #'vertico-next)
+  (define-key vertico-map (kbd "C-k") #'vertico-previous)
+  (define-key vertico-map (kbd "M-h") #'vertico-directory-up))
+
+;; Marginalia for annotations in the minibuffer
+(use-package marginalia
+  :ensure t
+  :after vertico
+  :init
+  (marginalia-mode))
+
+(use-package consult
+  :ensure t
+  :after vertico
+  :bind (("C-s"     . consult-line)       ;; or keep isearch if you prefer
+         ("C-x b"   . consult-buffer)
+         ("C-x C-r" . consult-recent-file)
+         ("M-x"     . consult-M-x)
+         ("M-g g"   . consult-goto-line)
+         ("M-g i"   . consult-imenu)
+         ("M-g o"   . consult-outline)))
+
+
+;; Embark for contextual actions
+(use-package embark
+  :ensure t
+  :bind (("C-." . embark-act)
+         ("C-;" . embark-dwim)
+         ("C-h B" . embark-bindings))
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Actions\\*\\'"
+                 (display-buffer-samedow)
+                 (window-height . 0.33))))
+
+(use-package embark-consult
+  :ensure t
+  :after (embark consult)
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
+
+;; Persist minibuffer history
+(use-package savehist
+  :init
+  (savehist-mode))
+
+;; from chatgpt
+(use-package prescient
+  :ensure t
+  :custom
+  (prescient-save-file (locate-user-emacs-file "var/prescient-save.el"))
+  :config
+  (make-directory (file-name-directory prescient-save-file) t)
+  (prescient-persist-mode 1))
+
+(use-package vertico-prescient
+  :ensure t
+  :after (vertico prescient)
+  :config
+  (vertico-prescient-mode 1))
+
+
+;; Configure Vertico to use prescient
+(use-package vertico-prescient
+  :ensure t
+  :after (vertico prescient)
+  :init (vertico-prescient-mode 1))
+
+;; ----------------------------------------------------------------------------
+;; 4. Basic Emacs Quality of Life Improvements
+;; ----------------------------------------------------------------------------
+(setq inhibit-startup-message t)
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(setq-default indent-tabs-mode nil)
+(setq tab-width 4)
+(global-display-line-numbers-mode 1)
+(setq display-line-numbers-type 'relative)
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups"))
+      auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))
+      create-lockfiles nil)
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
+(setq use-dialog-box nil)
+(fset 'yes-or-no-p 'y-or-n-p)
+(setq gc-cons-threshold (* 100 1024 1024))
+(setq read-process-output-max (* 4 1024 1024))
+(setq frame-title-format
+      '("" invocation-name ": "
+        (:eval (if (buffer-file-name)
+                   (abbreviate-file-name (buffer-file-name))
+                 "%b"))))
+(show-paren-mode 1)
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'forward)
+(column-number-mode 1)
+(global-auto-revert-mode 1)
+
+
+
+;; ;; Bootstrap 'use-package'
+;; (unless (package-installed-p 'use-package)
+;;   (package-refresh-contents)
+;;   (package-install 'use-package))
+
+;; (eval-when-compile (require 'use-package))
 
 ;; M-x must go through TTY
-(keymap-set global-map "<f9>" #'counsel-M-x)
+(keymap-set global-map "<f9>" #'counsult-M-x)
 
-;; Configure use-package defaults
-(setq use-package-always-ensure t   ;; Install packages if not present
-      use-package-always-defer t)   ;; Defer loading for better startup time
 
 ;; Backup settings
 (setq backup-directory-alist '(("." . "~/.emacs.d/backups"))) ; Store backups in ~/.emacs.d/backups/
 (setq backup-by-copying t) ; Copy files for backups
 
-;; Make sure M-. / M-, are xref go-to-definition / pop-back
-(keymap-global-set "M-." 'xref-find-definitions)
-(keymap-global-set "M-," 'xref-pop-marker-stack)
-;; Ensure these are active in normal state too:
-(with-eval-after-load 'evil
-  (define-key evil-normal-state-map (kbd "M-.") #'xref-find-definitions)
-  (define-key evil-normal-state-map (kbd "M-,") #'xref-pop-marker-stack))
+;; ;; Make sure M-. / M-, are xref go-to-definition / pop-back
+;; (keymap-global-set "M-." 'xref-find-definitions)
+;; (keymap-global-set "M-," 'xref-pop-marker-stack)
+;; ;; Ensure these are active in normal state too:
+;; (with-eval-after-load 'evil
+;;   (define-key evil-normal-state-map (kbd "M-.") #'xref-find-definitions)
+;;   (define-key evil-normal-state-map (kbd "M-,") #'xref-pop-marker-stack))
 
-(recentf-mode 1)                     ;; turn it on
-(setq recentf-max-saved-items 1000)   ;; how many files to keep
-(setq recentf-max-menu-items 50)
+;; (recentf-mode 1)                     ;; turn it on
+;; (setq recentf-max-saved-items 1000)   ;; how many files to keep
+;; (setq recentf-max-menu-items 50)
 
 (defun my/enable-line-numbers-for-code ()
   "Enable line numbers for programming modes."
@@ -65,37 +235,6 @@
 ;;   :config (load-theme 'modus-operandi-deuteranopia t))
 (load-theme 'leuven t)
 
-
-;;;;;; ---- Completion stack: Vertico + Orderless + Marginalia ----
-;;(require 'vertico)
-;;(use-package vertico
-;;  :ensure t
-;;  :init (vertico-mode 1))
-;;
-;;(use-package marginalia
-;;  :after vertico
-;;  :ensure t
-;;  :init
-;;  (marginalia-mode 1))
-;;
-;;(use-package orderless
-;;  :ensure t
-;;  :init
-;;  ;; This is the magic line that enables the fuzzy matching
-;;  (setq completion-styles '(orderless basic)
-;;        completion-category-defaults nil
-;;        completion-category-overrides '((file (styles . (partial-completion))))))
-
-
-;;;; ---- Consult (find, ripgrep, xref, etc.) ----
-(use-package consult
-  :ensure t
-  :init
-  ;; Make async sources snappy; tune if you type slowly/quickly
-  (setq consult-async-min-input 2
-        consult-async-refresh-delay 0.08))
-
-
 ;; Git on demand
 (use-package magit
   :ensure t
@@ -119,22 +258,6 @@
 (setq desktop-restore-frames t) ;; Restore window layout
 (setq desktop-dirname "~/.emacs.d/") ;; Save desktop file here
 
-;; Enable Evil mode
-(setq evil-want-C-u-scroll t)
-(require 'evil)
-(evil-mode 1)
-
-;; Install + wire up evil-nerd-commenter
-(use-package evil-nerd-commenter
-  :after evil
-  :bind (("C-/" . evilnc-comment-or-uncomment-lines))  ;; VSCode/JetBrains-style toggle
-  :config
-  ;; Vim-like keys: `gcc` (line), `gc{motion}` (operator), Visual `gc`
-  (evil-define-key 'normal prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
-  (evil-define-key 'visual prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
-  (evil-define-key 'normal prog-mode-map (kbd "gcc") #'evilnc-comment-or-uncomment-lines))
-;; Make <f12> behave exactly like C-/
-(define-key key-translation-map (kbd "<f12>") (kbd "C-/"))
 
 
 (keymap-global-set "C-1" 'delete-other-windows)
@@ -214,8 +337,6 @@
 
 (setq dired-mouse-drag-files t)
 
-;; History for M-x
-(use-package savehist :init (savehist-mode 1)) ; keep history for Orderless/Minibuffer
 
 ;;Reload this file
 (defun reload-init-file ()
@@ -282,9 +403,13 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 ;; Good for moving file between Dired buffers
 (setq dired-dwim-target t)
 
-(global-auto-revert-mode 1)      ; refresh file-visiting buffers automatically
-(setq global-auto-revert-non-file-buffers t)
-(setq auto-revert-check-vc-info t)
+(setq global-auto-revert-non-file-buffers t) ;; auto-refresh dired etc.
+(setq auto-revert-verbose nil) ;;reduce mini-buffer noise
+(global-auto-revert-mode 1)   ;; refresh file-visiting buffers automatically
+ 
+;; REMINDER: DO NOT ENABLE THIS. IT DEFAULTS TO NIL ALREADY: 
+;;(setq auto-revert-check-vc-info t) ;;THIS IS LAGGY AF!
+
 
 ;; highlight diff in realtime
 (use-package diff-hl
@@ -382,32 +507,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 ;; Optional for icons in some segments:
 ;; (use-package nerd-icons :ensure t)
 
-;; From Alasdair:
-( defun my-word-under-cursor ()
-
-  "Returns the word under the cursor"
-  (interactive)
-
-  (buffer-substring (save-excursion
-		      (skip-chars-backward "-$#~/\\\\_a-zA-Z0-9")
-		      (point))
-		    (save-excursion
-		      (skip-chars-forward "-#~/\\\\_a-zA-Z0-9")
-		      (if (or (eq (preceding-char) ?.) (eq (preceding-char) ?-))
-			  (1- (point))
-			(point)))))
-
-
-;; Search forward for the string under the cursor.
-;; Puts the string into the isearch list, so the next
-;; time you hit ctrl-S it caries on searching
-(defun my-search ()
-  "Do a search on the word under the cursor"
-  (interactive)
-  (isearch-update-ring (my-word-under-cursor))
-  (search-forward (car search-ring)))
-;; research on the usefulness of this before enabling
-;; probably no need.
 
 (defvar xah-open-file-at-cursor-pre-hook nil "Hook for `xah-open-file-at-cursor'.
 Functions in the hook is called in order, each given the raw input text (path) as arg.
@@ -511,18 +610,18 @@ Version: 2024-05-20"
 ;; need this for copy from terminal to local clipboard
 (setq xterm-extra-capabilities '(setSelection))
 
-(require 'ivy)
-(require 'counsel)
+;; (require 'ivy)
+;; (require 'counsel)
 
-(ivy-mode 1)
-(counsel-mode 1)
+;; (ivy-mode 1)
+;; (counsel-mode 1)
 
 ;; Optional: Enable rich completion annotations
 ;;(require 'ivy-rich)
 ;;(ivy-rich-mode 1)
 
 ;; Example keybindings (customize as you like)
-(global-set-key (kbd "C-s") 'swiper-isearch)
-(global-set-key (kbd "M-x") 'counsel-M-x)
-(global-set-key (kbd "C-x C-f") 'counsel-find-file)
-(global-set-key (kbd "C-x b") 'ivy-switch-buffer)
+;; (global-set-key (kbd "C-s") 'swiper-isearch)
+;; (global-set-key (kbd "M-x") 'counsel-M-x)
+;; (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+;; (global-set-key (kbd "C-x b") 'ivy-switch-buffer)
