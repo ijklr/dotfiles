@@ -76,7 +76,6 @@
 (setq recentf-max-saved-items 1000)   ;; how many files to keep
 (setq recentf-max-menu-items 50)
 
-
 ;; from chatgpt
 (use-package prescient
   :ensure t
@@ -91,7 +90,6 @@
   :after (vertico prescient)
   :config
   (vertico-prescient-mode 1))
-
 
 ;; Configure Vertico to use prescient
 (use-package vertico-prescient
@@ -165,7 +163,6 @@
 ;; M-x must go through TTY
 ;;(keymap-set global-map "<f9>" #'consult-M-x)
 
-
 ;; Backup settings
 (setq backup-directory-alist '(("." . "~/.emacs.d/backups"))) ; Store backups in ~/.emacs.d/backups/
 (setq backup-by-copying t) ; Copy files for backups
@@ -195,11 +192,8 @@
 (when (fboundp 'menu-bar-mode)
   (menu-bar-mode -1))
 
-;; Theme: Modus Operandi Deu
-;; (use-package modus-themes
-;;   :demand t
-;;   :config (load-theme 'modus-operandi-deuteranopia t))
-(load-theme 'leuven t)
+;; Theme: Modus Operandi
+(load-theme 'modus-operandi t)
 
 ;; Git on demand
 (use-package magit
@@ -269,9 +263,7 @@
 (keymap-global-set "C-c j" 'windmove-down)
 (keymap-global-set "C-c k" 'windmove-up)
 (keymap-global-set "C-c l" 'windmove-right)
-
 (windmove-default-keybindings) ; Shift+arrow moves between windows
-
 
 ;; Swap windows with Meta+Shift-hjkl (Emacs 27+ has window-swap-states)
 (defun my/window-swap (dir)
@@ -299,7 +291,6 @@
 (keymap-global-set "<f6>" 'my-run-aout)
 
 (setq dired-mouse-drag-files t)
-
 
 ;;Reload this file
 (defun reload-init-file ()
@@ -348,7 +339,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     (call-interactively #'my/find-file-smart)))
 (keymap-set my-custom-keymap "f" 'my-project-find-file-toggle)
 
-
 (defun my-consult-buffer-toggle ()
   "Call `consult-buffer' or quit if the minibuffer is active."
   (interactive)
@@ -369,7 +359,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (setq global-auto-revert-non-file-buffers t) ;; auto-refresh dired etc.
 (setq auto-revert-verbose nil) ;;reduce mini-buffer noise
 (global-auto-revert-mode 1)   ;; refresh file-visiting buffers automatically
-
 ;; REMINDER: DO NOT ENABLE THIS. IT DEFAULTS TO NIL ALREADY: 
 ;;(setq auto-revert-check-vc-info t) ;;THIS IS LAGGY AF!
 
@@ -452,7 +441,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (unless (display-graphic-p)
   (xterm-mouse-mode 1))
 
-
 ;; --- Doom Modeline Setup ---
 (use-package all-the-icons
   :ensure t
@@ -471,8 +459,7 @@ Functions in the hook is called in order, each given the raw input text (path) a
 The first return non-nil, its value is given to `xah-open-file-at-cursor' as input. rest functions in hook is ignored.
 This is useful for transforming certain url into file path. e.g. change
 http://xahlee.info/emacs/index.html
-to
-C:/Users/xah/web/xahlee_info/emacs/index.html
+to C:/Users/xah/web/xahlee_info/emacs/index.html
 , so instead of opening in browser, it opens in emacs as file.")
 
 (defun xah-open-file-at-cursor ()
