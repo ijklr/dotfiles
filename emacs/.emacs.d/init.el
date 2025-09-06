@@ -1,12 +1,4 @@
 ;;; init.el --- shauncheng 2025
-;; Custom file
-(setq custom-file (locate-user-emacs-file "custom.el"))
-(load custom-file 'noerror 'nomessage)
-
-;; Load a local config if it exists (no error, no message).
-(load (locate-user-emacs-file "local.el") t t)
-
-
 ;; ----------------------------------------------------------------------------
 ;; 1. Package Management
 ;; ----------------------------------------------------------------------------
@@ -582,4 +574,11 @@ Version: 2024-05-20"
 ;;(keymap-global-set "C-@" 'split-window-below)
 (keymap-global-set "<z>" 'other-window)
 
+
+;; Custom file
+(setq custom-file (locate-user-emacs-file "custom.el"))
+(load custom-file 'noerror 'nomessage)
+
+;; Load a local config if it exists (no error, no message).
+(load (locate-user-emacs-file "local.el") t t)
 
