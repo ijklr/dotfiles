@@ -1,0 +1,9 @@
+# .clang-format
+BasedOnStyle: Google
+
+# Override indentation width
+IndentWidth: 4
+TabWidth: 4
+
+# Optional: make sure spaces (not tabs) are used
+UseTab: Never
