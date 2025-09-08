@@ -417,7 +417,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   )
 (keymap-global-set "<f7>" 'my-vdiff-toggle-or-quit)
 
-(use-package vterm :ensure t)
+;;(use-package vterm :ensure t)
 ;; (use-package dirvish :init (dirvish-override-dired-mode 1))
 
 ;; Popup for easy discoverability
