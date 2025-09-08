@@ -351,7 +351,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   "Indent the entire buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
-(keymap-global-set "<f8>" 'indent-whole-buffer)
+(keymap-global-set "<f8>" 'clang-format)
 (setq clang-format-style "Google")
 
 ;; Good for moving file between Dired buffers

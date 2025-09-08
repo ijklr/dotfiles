@@ -32,3 +32,4 @@ end
 
 bind \e\[15\~ fzf_history_search   # F5 keycode in fish
 
+set -gx PATH $HOME/.cargo/bin $PATH
