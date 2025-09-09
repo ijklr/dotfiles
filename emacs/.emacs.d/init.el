@@ -134,7 +134,7 @@
 (setq inhibit-startup-message t)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
-(scroll-bar-mode -1)
+;;(scroll-bar-mode -1) ;; the terminal version complains
 (setq-default indent-tabs-mode nil)
 (setq tab-width 4)
 (global-display-line-numbers-mode 1)
