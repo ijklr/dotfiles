@@ -353,7 +353,10 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (indent-region (point-min) (point-max)))
 (keymap-global-set "<f8>" 'clang-format-buffer)
 (setq lsp-clients-clangd-args '("--fallback-style=none"))
-;;(setq clang-format-style "Google")
+
+;; Apply to all C-like modes (C, C++, Java, etc.)
+(setq c-default-style "linux"        ;; base style
+      c-basic-offset 4)              ;; indent width
 
 ;; Good for moving file between Dired buffers
 (setq dired-dwim-target t)
