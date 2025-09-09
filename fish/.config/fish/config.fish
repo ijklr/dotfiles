@@ -33,3 +33,7 @@ end
 bind \e\[15\~ fzf_history_search   # F5 keycode in fish
 
 set -gx PATH $HOME/.cargo/bin $PATH
+
+function et
+    TERM=xterm-kitty command emacs -nw $argv
+end
