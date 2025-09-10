@@ -588,3 +588,9 @@ Version: 2024-05-20"
     :non-normal-prefix "M-SPC")
   (spc-leader
     "a" '(artist-mode :which-key "toggle artist-mode")))
+
+
+(defun insert-epoch-time ()
+  "Insert the current epoch time (seconds since 1970-01-01) at point."
+  (interactive)
+  (insert (format-time-string "%s")))
