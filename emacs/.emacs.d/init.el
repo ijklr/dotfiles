@@ -106,6 +106,7 @@
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
+  (setq evil-undo-system 'undo-redo) ;; so that ctrl+r redo works
   :config
   (evil-mode 1)
   (define-key evil-normal-state-map (kbd "C-g") 'keyboard-quit)
