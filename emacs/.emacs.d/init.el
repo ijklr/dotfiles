@@ -575,3 +575,6 @@ Version: 2024-05-20"
 ;; Load a local config if it exists (no error, no message).
 (load (locate-user-emacs-file "local.el") t t)
 
+
+;; Enable word wrap
+(global-visual-line-mode 1) 
