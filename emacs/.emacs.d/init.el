@@ -204,7 +204,7 @@
 (use-package eglot
   ;; If you're on Emacs 29+, eglot is built-in, so :ensure is not needed.
   ;; But having it is harmless and good for compatibility with older versions.
-  :ensure t 
+  :ensure t
   :hook ((c-mode . eglot-ensure)
          (c++-mode . eglot-ensure)))
 
@@ -248,8 +248,8 @@
 (keymap-set my-custom-keymap "a" 'magit-status)
 (keymap-set my-custom-keymap "w" 'tab-close)
 (keymap-set my-custom-keymap "q" 'delete-window)
-(keymap-set my-custom-keymap "e" 'previous-buffer) 
-(keymap-set my-custom-keymap "s" 'consult-line) 
+(keymap-set my-custom-keymap "e" 'previous-buffer)
+(keymap-set my-custom-keymap "s" 'consult-line)
 (keymap-set my-custom-keymap "x" 'kill-this-buffer)
 
 ;; Make sure consult is installed & recentf-mode is enabled
@@ -305,7 +305,7 @@
   (if (minibufferp)
       (abort-recursive-edit)
     (consult-recent-file)))
-(keymap-set my-custom-keymap "r" 'my-recent-file-toggle) 
+(keymap-set my-custom-keymap "r" 'my-recent-file-toggle)
 
 ;;   Helper function to for find file:
 ;;   - If inside a project → `project-find-file` (fast, respects VCS ignores).
@@ -365,7 +365,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (setq global-auto-revert-non-file-buffers t) ;; auto-refresh dired etc.
 (setq auto-revert-verbose nil) ;;reduce mini-buffer noise
 (global-auto-revert-mode 1)   ;; refresh file-visiting buffers automatically
-;; REMINDER: DO NOT ENABLE THIS. IT DEFAULTS TO NIL ALREADY: 
+;; REMINDER: DO NOT ENABLE THIS. IT DEFAULTS TO NIL ALREADY:
 ;;(setq auto-revert-check-vc-info t) ;;THIS IS LAGGY AF!
 
 
@@ -577,4 +577,14 @@ Version: 2024-05-20"
 
 
 ;; Enable word wrap
-(global-visual-line-mode 1) 
+(global-visual-line-mode 1)
+
+;; My SPC leader
+(use-package general
+  :config
+  (general-create-definer spc-leader
+    :states '(normal visual emacs)
+    :prefix "SPC"
+    :non-normal-prefix "M-SPC")
+  (spc-leader
+    "a" '(artist-mode :which-key "toggle artist-mode")))
