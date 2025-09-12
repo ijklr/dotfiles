@@ -362,6 +362,9 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 ;; Good for moving file between Dired buffers
 (setq dired-dwim-target t)
 
+;;Dired to auto-refresh when files change
+(add-hook 'dired-mode-hook 'auto-revert-mode)
+
 (setq global-auto-revert-non-file-buffers t) ;; auto-refresh dired etc.
 (setq auto-revert-verbose nil) ;;reduce mini-buffer noise
 (global-auto-revert-mode 1)   ;; refresh file-visiting buffers automatically
