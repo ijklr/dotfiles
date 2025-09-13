@@ -4,9 +4,6 @@
 ;; ----------------------------------------------------------------------------
 (setq package-enable-at-startup nil)
 
-(when (boundp 'gnutls-algorithm-priority)
-  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3"))
-
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -39,23 +36,33 @@
   :ensure t
   :config
   (marginalia-mode 1))
+
 (use-package orderless
-  :ensure t
+  :init
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package prescient :config (prescient-persist-mode 1))
+(use-package vertico-prescient
+  :after (vertico prescient)
   :config
-  (setq completion-styles '(orderless basic)))
+  ;; Only use prescient for sorting, not filtering:
+  (setq vertico-prescient-enable-filtering nil
+        vertico-prescient-enable-sorting t)
+  (vertico-prescient-mode 1))
+
 (use-package consult
-  :ensure t
-  :bind (;; A recursive grep
+  :bind (("M-s M-r" . consult-ripgrep) ;; Use consult-ripgrep by default for big searches
          ("M-s M-g" . consult-grep)
-         ;; Search for files names recursively
-         ("M-s M-f" . consult-find)
-         ;; Search through the outline (headings) of the file
-         ("M-s M-o" . consult-outline)
-         ;; Search the current buffer
          ("M-s M-l" . consult-line)
-         ;; Switch to another buffer, or bookmarked file, or recently
-         ;; opened file.
+         ("M-s M-f" . consult-find)
+         ("M-s M-o" . consult-outline)
          ("M-s M-b" . consult-buffer)))
+;; Optional: tweak ripgrep args
+(setq consult-ripgrep-args
+      "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --no-heading --line-number --hidden -g !.git/")
+
 (use-package embark
   :ensure t
   :bind (("C-." . embark-act)
@@ -72,9 +79,19 @@
           ("C-x C-q" . wgrep-change-to-wgrep-mode)
           ("C-c C-c" . wgrep-finish-edit)))
 (savehist-mode 1)
+(setq history-length 5000
+      savehist-additional-variables '(kill-ring search-ring regexp-search-ring))
+
+;;Recentf file: ensure directory exists to avoid startup warnings:
+(setq recentf-save-file (locate-user-emacs-file "var/recentf"))
+(make-directory (file-name-directory recentf-save-file) t)
 (recentf-mode 1)
 (setq recentf-max-saved-items 1000)   ;; how many files to keep
 (setq recentf-max-menu-items 50)
+
+;;Save place (cursor position across files):
+(save-place-mode 1)
+
 
 ;; from chatgpt
 (use-package prescient
@@ -84,19 +101,6 @@
   :config
   (make-directory (file-name-directory prescient-save-file) t)
   (prescient-persist-mode 1))
-
-(use-package vertico-prescient
-  :ensure t
-  :after (vertico prescient)
-  :config
-  (vertico-prescient-mode 1))
-
-;; Configure Vertico to use prescient
-(use-package vertico-prescient
-  :ensure t
-  :after (vertico prescient)
-  :init (vertico-prescient-mode 1))
-
 
 ;; ----------------------------------------------------------------------------
 ;; 3. Evil Mode (Vim keybindings)
@@ -133,9 +137,6 @@
 ;; 4. Basic Emacs Quality of Life Improvements
 ;; ----------------------------------------------------------------------------
 (setq inhibit-startup-message t)
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-;;(scroll-bar-mode -1) ;; the terminal version complains
 (setq-default indent-tabs-mode nil)
 (setq tab-width 4)
 (global-display-line-numbers-mode 1)
@@ -157,7 +158,6 @@
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward)
 (column-number-mode 1)
-(global-auto-revert-mode 1)
 
 ;; (eval-when-compile (require 'use-package))
 
@@ -208,11 +208,18 @@
   :hook ((c-mode . eglot-ensure)
          (c++-mode . eglot-ensure)))
 
+(with-eval-after-load 'eglot
+  (setf (alist-get 'c++-mode eglot-server-programs)
+        '("clangd" "--fallback-style=none"))
+  (setf (alist-get 'c-mode eglot-server-programs)
+        '("clangd" "--fallback-style=none")))
+
+
 ;; Report startup time
 (add-hook 'emacs-startup-hook
-	  (lambda ()
-	    (message "Emacs ready in %s with %d GCs."
-		     (emacs-init-time) gcs-done)))
+	      (lambda ()
+	        (message "Emacs ready in %s with %d GCs."
+		             (emacs-init-time) gcs-done)))
 ;;Enable desktop-save-mode
 (desktop-save-mode 1)
 (setq desktop-restore-frames t) ;; Restore window layout
@@ -232,6 +239,10 @@
 (tab-bar-mode 1)           ; enable workspace tabs
 (keymap-global-set "C-<prior>" 'tab-bar-switch-to-prev-tab)
 (keymap-global-set "C-<next>" 'tab-bar-switch-to-next-tab)
+;;Tab bar: add numeric shortcuts
+(dotimes (i 9)
+  (keymap-global-set (format "M-%d" (1+ i))
+                     (lambda () (interactive) (tab-bar-select-tab (1+ i)))))
 
 ;; Define a custom keymap for M-o
 (defvar my-custom-keymap (make-sparse-keymap)
@@ -254,6 +265,8 @@
 
 ;; Make sure consult is installed & recentf-mode is enabled
 (keymap-global-set "C-x C-b" 'ibuffer)
+(setq ibuffer-expert t) ; fewer prompts
+
 
 ;; Move focus with Meta-hjkl
 (keymap-global-set "M-h" 'windmove-left)
@@ -318,7 +331,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 `find-file` rooted there."
   (interactive "P")
   (let* ((proj (project-current))
-	 (root (and proj (ignore-errors (project-root proj)))))
+	     (root (and proj (ignore-errors (project-root proj)))))
     (cond
      ;; In a project and no explicit prompt: use project finder.
      ((and proj (not prompt-directory))
@@ -326,11 +339,11 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
      ;; Otherwise: classic find-file, rooted at chosen dir / project root / cwd.
      (t
       (let* ((base (or root default-directory))
-	     (dir  (if prompt-directory
-		       (read-directory-name "Find file in: " base nil t)
-		     base))
-	     (default-directory dir))
-	(call-interactively #'consult-find))))))
+	         (dir  (if prompt-directory
+		               (read-directory-name "Find file in: " base nil t)
+		             base))
+	         (default-directory dir))
+	    (call-interactively #'consult-find))))))
 ;; Make the toggle for it
 (defun my-project-find-file-toggle ()
   "Call `consult-buffer' or quit if the minibuffer is active."
@@ -352,6 +365,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   "Indent the entire buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
+(use-package clang-format :ensure t)
 (keymap-global-set "<f8>" 'clang-format-buffer)
 (setq lsp-clients-clangd-args '("--fallback-style=none"))
 
@@ -415,11 +429,11 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (interactive)
   (if (get-buffer "*origin/master*")
       (progn (message "hello I am quitting vdiff!")
-	     (vdiff-quit)
-	     (kill-buffer "*origin/master*")
-	     (delete-other-windows))
+	         (vdiff-quit)
+	         (kill-buffer "*origin/master*")
+	         (delete-other-windows))
     (progn (message "opening vdiff!")
-	   (my-vdiff-with-origin-master))
+	       (my-vdiff-with-origin-master))
     )
   )
 (keymap-global-set "<f7>" 'my-vdiff-toggle-or-quit)
@@ -428,7 +442,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 ;; (use-package dirvish :init (dirvish-override-dired-mode 1))
 
 ;; Popup for easy discoverability
-(which-key-mode t)
+(use-package which-key :ensure t :config (which-key-mode 1))
 
 ;; Column number display
 (column-number-mode 1)
@@ -441,6 +455,9 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
                     :foreground "#f0ffff" ; azure1  (M-x list-colors-display)
                     :background "#f0ffff" ;
                     :weight 'light)
+
+;; Display FCI globally, let theme style it
+(global-display-fill-column-indicator-mode 1)
 
 ;; highlight current line
 (global-hl-line-mode 1)
@@ -462,114 +479,12 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 ;; Optional for icons in some segments:
 ;; (use-package nerd-icons :ensure t)
 
-
-(defvar xah-open-file-at-cursor-pre-hook nil "Hook for `xah-open-file-at-cursor'.
-Functions in the hook is called in order, each given the raw input text (path) as arg.
-The first return non-nil, its value is given to `xah-open-file-at-cursor' as input. rest functions in hook is ignored.
-This is useful for transforming certain url into file path. e.g. change
-http://xahlee.info/emacs/index.html
-to C:/Users/xah/web/xahlee_info/emacs/index.html
-, so instead of opening in browser, it opens in emacs as file.")
-
-(defun xah-open-file-at-cursor ()
-  "Open the file path under cursor.
-
-• If there is selection, use it for path.
-• Path can be {relative, full path, URL}.
-• If the path starts with 「https*://」, open the URL in browser.
-• Path may have a trailing 「:‹n›」 that indicates line number, or 「:‹n›:‹m›」 with line and column number. If so, jump to that line number.
-
-If path does not have a file extension, automatically try with .el for elisp files.
-
-See also `xah-open-file-at-cursor-pre-hook'.
-
-This command is similar to `find-file-at-point' but without prompting for confirmation.
-http://www.google.com
-URL `http://xahlee.info/emacs/emacs/emacs_open_file_path_fast.html'
-Created: 2020-10-17
-Version: 2024-05-20"
-  (interactive)
-  (let (xinput xinput2 xpath)
-    (setq xinput (if (region-active-p)
-                     (buffer-substring-no-properties (region-beginning) (region-end))
-                   (let ((xp0 (point)) xp1 xp2
-                         (xpathStops "^  \t\n\"`'‘’“”|()[]{}「」<>〔〕〈〉《》【】〖〗«»‹›❮❯❬❭〘〙·。\\"))
-                     (skip-chars-backward xpathStops)
-                     (setq xp1 (point))
-                     (goto-char xp0)
-                     (skip-chars-forward xpathStops)
-                     (setq xp2 (point))
-                     (goto-char xp0)
-                     (buffer-substring-no-properties xp1 xp2))))
-    (setq xinput2 (if (> (length xah-open-file-at-cursor-pre-hook) 0)
-                      (let ((xprehook (run-hook-with-args-until-success 'xah-open-file-at-cursor-pre-hook xinput)))
-                        (if xprehook xprehook xinput))
-                    xinput))
-
-    (setq xpath
-          (cond
-           ((string-match "^file:///[A-Za-z]:/" xinput2) (substring xinput2 8))
-           ((string-match "^file://[A-Za-z]:/" xinput2) (substring xinput2 7))
-           (t xinput2)))
-
-    (if (string-match-p "\\`https?://" xpath)
-        (browse-url xpath)
-      (let ((xpathNoQ
-             (let ((xHasQuery (string-match "\?[a-z]+=" xpath)))
-               (if xHasQuery
-                   (substring xpath 0 xHasQuery)
-                 xpath))))
-        (cond
-         ((string-match "#" xpathNoQ)
-          (let ((xfpath (substring xpathNoQ 0 (match-beginning 0)))
-                (xfractPart (substring xpathNoQ (1+ (match-beginning 0)))))
-            (if (file-exists-p xfpath)
-                (progn
-                  (find-file xfpath)
-                  (goto-char (point-min))
-                  (search-forward xfractPart))
-              (progn
-                (message "File does not exist. Created at\n%s" xfpath)
-                (find-file xfpath)))))
-         ((string-match "^\\`\\(.+?\\):\\([0-9]+\\)\\(:[0-9]+\\)?\\'" xpathNoQ)
-          (let ((xfpath (match-string-no-properties 1 xpathNoQ))
-                (xlineNum (string-to-number (match-string-no-properties 2 xpathNoQ))))
-            (if (file-exists-p xfpath)
-                (progn
-                  (find-file xfpath)
-                  (goto-char (point-min))
-                  (forward-line (1- xlineNum)))
-              (progn
-                (message "File does not exist. Created at\n%s" xfpath)
-                (find-file xfpath)))))
-         ((file-exists-p xpathNoQ)
-          (progn ; open f.ts instead of f.js
-            (let ((xext (file-name-extension xpathNoQ))
-                  (xfnamecore (file-name-sans-extension xpathNoQ)))
-              (if (and (string-equal xext "js")
-                       (file-exists-p (concat xfnamecore ".ts")))
-                  (progn
-                    (find-file (concat xfnamecore ".ts"))
-                    (warn "Typescript file .ts exist, opening it"))
-
-                (find-file xpathNoQ)))))
-         ((file-exists-p (concat xpathNoQ ".el"))
-          (find-file (concat xpathNoQ ".el")))
-         (t (progn
-              (message "File does not exist. Created at\n%s" xpathNoQ)
-              (find-file xpathNoQ))))))))
-
-
 ;;Enable Clipboard Access: In iTerm2, go to iTerm2 > Preferences (or Settings), select the Selection tab. Check the box for "Applications in terminal may access clipboard".
 ;; need this for copy from terminal to local clipboard
 (setq xterm-extra-capabilities '(setSelection))
 
-
 ;;TTY fixes
 (define-key key-translation-map (kbd "<f9>") (kbd "M-x"))
-;;(keymap-global-set "C-@" 'split-window-below)
-(keymap-global-set "<z>" 'other-window)
-
 
 ;; Custom file
 (setq custom-file (locate-user-emacs-file "custom.el"))
@@ -577,7 +492,6 @@ Version: 2024-05-20"
 
 ;; Load a local config if it exists (no error, no message).
 (load (locate-user-emacs-file "local.el") t t)
-
 
 ;; Enable word wrap
 (global-visual-line-mode 1)
@@ -592,8 +506,13 @@ Version: 2024-05-20"
   (spc-leader
     "a" '(artist-mode :which-key "toggle artist-mode")))
 
-
 (defun insert-epoch-time ()
   "Insert the current epoch time (seconds since 1970-01-01) at point."
   (interactive)
   (insert (format-time-string "%s")))
+
+
+;; GC after startup
+(setq gc-cons-threshold (* 128 1024 1024))
+(add-hook 'emacs-startup-hook
+          (lambda () (setq gc-cons-threshold (* 16 1024 1024))))
