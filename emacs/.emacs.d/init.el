@@ -527,16 +527,16 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     
     ;; Files
     "f"   '(:ignore t :which-key "files")
-    "ff"  '(find-file              :which-key "find file")
+    "ff"  '(find-file           :which-key "find file")
+    "fr"  '(consult-recent-file    :which-key "recent files")
     "fs"  '(save-buffer            :which-key "save file")
-    "fr"  '(recentf-open-files     :which-key "recent files")
 
     ;; Buffers
-    "b"   '(:ignore t :which-key "buffers")
-    "bb"  '(switch-to-buffer       :which-key "switch buffer")
-    "bd"  '(kill-this-buffer       :which-key "kill buffer")
-    "bn"  '(next-buffer            :which-key "next buffer")
-    "bp"  '(previous-buffer        :which-key "prev buffer")
+    ;; "b"   '(:ignore t :which-key "buffers")
+    "b"   '(consult-buffer         :which-key "switch buffer")
+    ;; "bd"  '(kill-this-buffer       :which-key "kill buffer")
+    ;; "bn"  '(next-buffer            :which-key "next buffer")
+    ;; "bp"  '(previous-buffer        :which-key "prev buffer")
 
     ;; Windows
     "w"   '(:ignore t :which-key "windows")
@@ -544,41 +544,47 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "wv"  '(split-window-right     :which-key "split right")
     "wd"  '(delete-window          :which-key "delete window")
     "w="  '(balance-windows        :which-key "balance windows")
+    "1"  '(split-window-below     :which-key "split below")
+    "2"  '(split-window-right     :which-key "split right")
+    "0"  '(delete-window          :which-key "delete window")
+    "="  '(balance-windows        :which-key "balance windows")
 
     ;; Project (project.el)
     "p"   '(:ignore t :which-key "project")
     "pf"  '(project-find-file      :which-key "find file in project")
     "pp"  '(project-switch-project :which-key "switch project")
+    "ps"  '(project-find-regexp    :which-key "project search")
 
     ;; Search
-    "/"   '(project-find-regexp    :which-key "project search")
-    "s"   '(:ignore t :which-key "search")
-    "ss"  '(isearch-forward        :which-key "search buffer")
-    "sg"  '(project-find-regexp    :which-key "grep in project")
+    ;;"s"   '(:ignore t :which-key "search")
+    "s"  '(consult-line           :which-key "search buffer")
 
     ;; Git (Magit)
-    "g"   '(:ignore t :which-key "git")
-    "gs"  '(magit-status           :which-key "status")
-    "gb"  '(magit-blame-addition   :which-key "blame")
+    ;; "g"   '(:ignore t :which-key "git")
+    "g"   '(magit-status           :which-key "status")
 
     ;; Toggles
     "t"   '(:ignore t :which-key "toggles")
-    "tn"  '(display-line-numbers-mode :which-key "line numbers")
+    "tn"  '(display-line-numbers-mode  :which-key "line numbers")
     "tw"  '(visual-line-mode           :which-key "word wrap")
+    "ta"  '(artist-mode                :which-key "toggle artist-mode")
+    "td"  '(my-vdiff-toggle-or-quit    :which-key "toggle vdiff")
 
     ;; Compile
     "c"   '(:ignore t :which-key "compile")
     "cc"  '(compile                 :which-key "compile")
     "cr"  '(recompile               :which-key "recompile")
+    "ca"  '(my-run-aout             :which-key "run a.out")
+    "5"  '(compile                 :which-key "compile")
+    "6"  '(recompile               :which-key "recompile")
+    "7"  '(my-run-aout             :which-key "run a.out")
+    "8"  '(clang-format-buffer     :which-key "clang format buffer")
 
     ;; Help
     "h"   '(:ignore t :which-key "help")
     "hf"  '(describe-function       :which-key "describe function")
     "hv"  '(describe-variable       :which-key "describe variable")
     "hk"  '(describe-key            :which-key "describe key")
-
-    ;; Extras
-    "a"   '(artist-mode             :which-key "toggle artist-mode")
 
     ;; Quit/session
     "q"   '(:ignore t :which-key "quit/session")
