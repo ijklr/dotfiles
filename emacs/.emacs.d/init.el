@@ -7,6 +7,7 @@
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")
                          ("gnu"   . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
@@ -43,7 +44,13 @@
         completion-category-defaults nil
         completion-category-overrides '((file (styles basic partial-completion)))))
 
-(use-package prescient :config (prescient-persist-mode 1))
+(use-package prescient
+  :ensure t
+  :custom
+  (prescient-save-file (locate-user-emacs-file "var/prescient-save.el"))
+  :config
+  (make-directory (file-name-directory prescient-save-file) t)
+  (prescient-persist-mode 1))
 (use-package vertico-prescient
   :after (vertico prescient)
   :config
@@ -93,15 +100,6 @@
 (save-place-mode 1)
 
 
-;; from chatgpt
-(use-package prescient
-  :ensure t
-  :custom
-  (prescient-save-file (locate-user-emacs-file "var/prescient-save.el"))
-  :config
-  (make-directory (file-name-directory prescient-save-file) t)
-  (prescient-persist-mode 1))
-
 ;; ----------------------------------------------------------------------------
 ;; 3. Evil Mode (Vim keybindings)
 ;; ----------------------------------------------------------------------------
@@ -143,6 +141,7 @@
 (setq backup-directory-alist '(("." . "~/.emacs.d/backups"))
       auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))
       create-lockfiles nil)
+(setq backup-by-copying t) ; Copy files for backups
 (set-language-environment "UTF-8")
 (set-default-coding-systems 'utf-8)
 (setq use-dialog-box nil)
@@ -164,9 +163,6 @@
 ;; M-x must go through TTY
 ;;(keymap-set global-map "<f9>" #'consult-M-x)
 
-;; Backup settings
-(setq backup-directory-alist '(("." . "~/.emacs.d/backups"))) ; Store backups in ~/.emacs.d/backups/
-(setq backup-by-copying t) ; Copy files for backups
 
 ;; Make sure M-. / M-, are xref go-to-definition / pop-back
 (keymap-global-set "M-." 'xref-find-definitions)
@@ -181,6 +177,10 @@
   (when (derived-mode-p 'prog-mode)
     (display-line-numbers-mode 1)))
 (add-hook 'prog-mode-hook 'my/enable-line-numbers-for-code)
+;; You globally enable line numbers; disable them for terminal/shell buffers to avoid redraw cost:
+(add-hook 'term-mode-hook (lambda () (display-line-numbers-mode 0)))
+(add-hook 'vterm-mode-hook (lambda () (display-line-numbers-mode 0)))
+
 
 ;; Minimal UI
 (setq inhibit-startup-message t
@@ -196,23 +196,66 @@
 ;; Theme: Modus Operandi
 (load-theme 'modus-operandi t)
 
-;; Git on demand
+;; Magit with conditional magit-delta
 (use-package magit
   :ensure t
-  :bind (("C-x g" . magit-status)))
+  :bind (("C-x g" . magit-status))
+  :config
+  (setq magit-diff-paint-whitespace nil))  ;; Cleaner diffs
+
+(use-package magit-delta
+  :ensure t
+  :after magit
+  :if (executable-find "delta")  ;; Only enable if delta is installed
+  :hook (magit-mode . magit-delta-mode)
+  :config
+  ;; Optional: Customize delta args for better visuals
+  (setq magit-delta-default-arguments '("--features" "side-by-side line-numbers" "--syntax-theme" "GitHub")))
+
 
 (use-package eglot
-  ;; If you're on Emacs 29+, eglot is built-in, so :ensure is not needed.
-  ;; But having it is harmless and good for compatibility with older versions.
-  :ensure t
-  :hook ((c-mode . eglot-ensure)
-         (c++-mode . eglot-ensure)))
+  :hook ((c-mode c++-mode c-ts-mode c++-ts-mode) . eglot-ensure)
+  :config
+  (setq eglot-extend-to-xref t) ;; xref requests open Eglot sessions when possible
+  (add-to-list 'eglot-server-programs
+               `(c++-mode . ("clangd" "--fallback-style=none")))
+  (add-to-list 'eglot-server-programs
+               `(c-mode   . ("clangd" "--fallback-style=none"))))
 
 (with-eval-after-load 'eglot
   (setf (alist-get 'c++-mode eglot-server-programs)
         '("clangd" "--fallback-style=none"))
   (setf (alist-get 'c-mode eglot-server-programs)
         '("clangd" "--fallback-style=none")))
+
+;; Use TS modes when available
+(add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+(add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+
+(use-package corfu
+  :ensure t
+  :init
+  (global-corfu-mode)
+  :custom
+  (corfu-auto t)              ;; Enable auto-completion
+  (corfu-auto-delay 0.1)      ;; Faster popup
+  (corfu-auto-prefix 2)       ;; Trigger after 2 chars
+  :config
+  (use-package corfu-prescient
+    :ensure t
+    :config
+    (corfu-prescient-mode 1)))
+
+(use-package cape
+  :config
+  ;; order: LSP (eglot) first, then cape extras
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (setq-local completion-at-point-functions
+                          (list (cape-super-capf
+                                 #'eglot-completion-at-point
+                                 #'cape-file
+                                 #'cape-dabbrev))))))
 
 
 ;; Report startup time
@@ -243,6 +286,10 @@
 (dotimes (i 9)
   (keymap-global-set (format "M-%d" (1+ i))
                      (lambda () (interactive) (tab-bar-select-tab (1+ i)))))
+(use-package tab-bar-echo-area
+  :ensure t
+  :config
+  (tab-bar-echo-area-mode 1))
 
 ;; Define a custom keymap for M-o
 (defvar my-custom-keymap (make-sparse-keymap)
@@ -262,6 +309,8 @@
 (keymap-set my-custom-keymap "e" 'previous-buffer)
 (keymap-set my-custom-keymap "s" 'consult-line)
 (keymap-set my-custom-keymap "x" 'kill-this-buffer)
+
+
 
 ;; Make sure consult is installed & recentf-mode is enabled
 (keymap-global-set "C-x C-b" 'ibuffer)
@@ -375,9 +424,14 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 
 ;; Good for moving file between Dired buffers
 (setq dired-dwim-target t)
-
 ;;Dired to auto-refresh when files change
 (add-hook 'dired-mode-hook 'auto-revert-mode)
+
+(setq dired-kill-when-opening-new-dired-buffer t) ;; keep buffer list tidy
+;; Optional: subtree expansion
+(use-package dired-subtree
+  :bind (:map dired-mode-map
+              ("TAB" . dired-subtree-toggle)))
 
 (setq global-auto-revert-non-file-buffers t) ;; auto-refresh dired etc.
 (setq auto-revert-verbose nil) ;;reduce mini-buffer noise
@@ -405,6 +459,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   ;; In terminals without fringes, use the margin.
   (unless (display-graphic-p)
     (diff-hl-margin-mode 1)))
+
 
 (use-package vdiff
   :ensure t
@@ -446,7 +501,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 
 ;; Column 80 indicator
 (setq-default fill-column 80)
-(setq-default fill-column-indicator-character ?\u2502); Thin vertical bar
+;;(setq-default fill-column-indicator-character ?\u2502); Thin vertical bar
 
 (set-face-attribute 'fill-column-indicator nil
                     :foreground "#f0ffff" ; azure1  (M-x list-colors-display)
@@ -458,7 +513,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 
 ;; highlight current line
 (global-hl-line-mode 1)
-(set-face-background 'hl-line "#d7ffff") ; Replace with your desired color code
+;;(set-face-background 'hl-line "#d7ffff") ; Replace with your desired color code
 
 ;;enable mouse in terminal
 (unless (display-graphic-p)
@@ -469,6 +524,15 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   :ensure t
   ;; Install fonts once with: M-x all-the-icons-install-fonts
   )
+
+(use-package doom-modeline
+  :ensure t
+  :init
+  (doom-modeline-mode 1)
+  :custom
+  (doom-modeline-height 25)
+  (doom-modeline-icon t)
+  (doom-modeline-major-mode-icon t))
 
 (use-package mood-line
   :ensure t
@@ -590,12 +654,11 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "q"   '(:ignore t :which-key "quit/session")
     "qq"  '(save-buffers-kill-terminal :which-key "quit emacs")))
 
-;; Optional: discoverable key hints
 (use-package which-key
-  :defer 0.1
   :config
-  (which-key-mode 1)
-  (setq which-key-idle-delay 0.35))
+  (setq which-key-show-early-on-C-h t)
+  (setq which-key-idle-secondary-delay 0.05)
+  (setq which-key-max-display-columns 3))
 
 (defun insert-epoch-time ()
   "Insert the current epoch time (seconds since 1970-01-01) at point."
@@ -617,4 +680,18 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (add-hook 'c++-ts-mode-hook    (lambda () (modify-syntax-entry ?_ "w")))
 ;; Repeat for other languages you care about (python-mode-hook, rust-mode-hook, etc.)
 
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
 
+
+(use-package org
+  :config
+  (setq org-startup-indented t
+        org-hide-leading-stars t
+        org-ellipsis "…"))
+
+;; macOS GUI: ensure Option sends meta
+(when (eq system-type 'darwin)
+  (setq mac-option-modifier 'meta
+        mac-command-modifier 'super))
