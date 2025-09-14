@@ -601,3 +601,14 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (setq gc-cons-threshold (* 128 1024 1024))
 (add-hook 'emacs-startup-hook
           (lambda () (setq gc-cons-threshold (* 16 1024 1024))))
+
+;; treats hello_world as one word
+(add-hook 'prog-mode-hook #'superword-mode)
+
+
+(add-hook 'c-mode-common-hook (lambda () (modify-syntax-entry ?_ "w")))
+(add-hook 'c-ts-mode-hook      (lambda () (modify-syntax-entry ?_ "w")))
+(add-hook 'c++-ts-mode-hook    (lambda () (modify-syntax-entry ?_ "w")))
+;; Repeat for other languages you care about (python-mode-hook, rust-mode-hook, etc.)
+
+
