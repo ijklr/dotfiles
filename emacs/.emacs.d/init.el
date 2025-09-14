@@ -217,9 +217,9 @@
 
 ;; Report startup time
 (add-hook 'emacs-startup-hook
-	      (lambda ()
-	        (message "Emacs ready in %s with %d GCs."
-		             (emacs-init-time) gcs-done)))
+	  (lambda ()
+	    (message "Emacs ready in %s with %d GCs."
+		     (emacs-init-time) gcs-done)))
 ;;Enable desktop-save-mode
 (desktop-save-mode 1)
 (setq desktop-restore-frames t) ;; Restore window layout
@@ -331,7 +331,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 `find-file` rooted there."
   (interactive "P")
   (let* ((proj (project-current))
-	     (root (and proj (ignore-errors (project-root proj)))))
+	 (root (and proj (ignore-errors (project-root proj)))))
     (cond
      ;; In a project and no explicit prompt: use project finder.
      ((and proj (not prompt-directory))
@@ -339,11 +339,11 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
      ;; Otherwise: classic find-file, rooted at chosen dir / project root / cwd.
      (t
       (let* ((base (or root default-directory))
-	         (dir  (if prompt-directory
-		               (read-directory-name "Find file in: " base nil t)
-		             base))
-	         (default-directory dir))
-	    (call-interactively #'consult-find))))))
+	     (dir  (if prompt-directory
+		       (read-directory-name "Find file in: " base nil t)
+		     base))
+	     (default-directory dir))
+	(call-interactively #'consult-find))))))
 ;; Make the toggle for it
 (defun my-project-find-file-toggle ()
   "Call `consult-buffer' or quit if the minibuffer is active."
@@ -429,20 +429,17 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (interactive)
   (if (get-buffer "*origin/master*")
       (progn (message "hello I am quitting vdiff!")
-	         (vdiff-quit)
-	         (kill-buffer "*origin/master*")
-	         (delete-other-windows))
+	     (vdiff-quit)
+	     (kill-buffer "*origin/master*")
+	     (delete-other-windows))
     (progn (message "opening vdiff!")
-	       (my-vdiff-with-origin-master))
+	   (my-vdiff-with-origin-master))
     )
   )
 (keymap-global-set "<f7>" 'my-vdiff-toggle-or-quit)
 
 ;;(use-package vterm :ensure t)
 ;; (use-package dirvish :init (dirvish-override-dired-mode 1))
-
-;; Popup for easy discoverability
-(use-package which-key :ensure t :config (which-key-mode 1))
 
 ;; Column number display
 (column-number-mode 1)
@@ -498,13 +495,101 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 
 ;; My SPC leader
 (use-package general
+  :after evil
   :config
-  (general-create-definer spc-leader
-    :states '(normal visual emacs)
+  ;; Make sure our bindings override minor modes
+  (general-override-mode 1)
+  ;; If some package already grabbed SPC, auto-unbind it.
+  (setq general-auto-unbind-keys t)
+
+  
+  ;; 1) Make SPC available as a prefix (unbind in relevant Evil states)
+  (general-def
+    :states '(normal visual motion emacs)
+    "SPC" nil)
+
+  ;; 2) Define leader (SPC) and localleader (,)
+  (general-create-definer my/leader
+    :states '(normal visual motion emacs)
+    :keymaps 'override
     :prefix "SPC"
-    :non-normal-prefix "M-SPC")
-  (spc-leader
-    "a" '(artist-mode :which-key "toggle artist-mode")))
+    :global-prefix "M-SPC")   ;; optional GUI/terminal fallback
+
+  (general-create-definer my/localleader
+    :states '(normal visual)
+    :keymaps 'override
+    :prefix ",")
+
+  ;; 3) Leader bindings
+  (my/leader
+    ;; M-x
+    "SPC" '(execute-extended-command :which-key "M-x")
+    
+    ;; Files
+    "f"   '(:ignore t :which-key "files")
+    "ff"  '(find-file              :which-key "find file")
+    "fs"  '(save-buffer            :which-key "save file")
+    "fr"  '(recentf-open-files     :which-key "recent files")
+
+    ;; Buffers
+    "b"   '(:ignore t :which-key "buffers")
+    "bb"  '(switch-to-buffer       :which-key "switch buffer")
+    "bd"  '(kill-this-buffer       :which-key "kill buffer")
+    "bn"  '(next-buffer            :which-key "next buffer")
+    "bp"  '(previous-buffer        :which-key "prev buffer")
+
+    ;; Windows
+    "w"   '(:ignore t :which-key "windows")
+    "ws"  '(split-window-below     :which-key "split below")
+    "wv"  '(split-window-right     :which-key "split right")
+    "wd"  '(delete-window          :which-key "delete window")
+    "w="  '(balance-windows        :which-key "balance windows")
+
+    ;; Project (project.el)
+    "p"   '(:ignore t :which-key "project")
+    "pf"  '(project-find-file      :which-key "find file in project")
+    "pp"  '(project-switch-project :which-key "switch project")
+
+    ;; Search
+    "/"   '(project-find-regexp    :which-key "project search")
+    "s"   '(:ignore t :which-key "search")
+    "ss"  '(isearch-forward        :which-key "search buffer")
+    "sg"  '(project-find-regexp    :which-key "grep in project")
+
+    ;; Git (Magit)
+    "g"   '(:ignore t :which-key "git")
+    "gs"  '(magit-status           :which-key "status")
+    "gb"  '(magit-blame-addition   :which-key "blame")
+
+    ;; Toggles
+    "t"   '(:ignore t :which-key "toggles")
+    "tn"  '(display-line-numbers-mode :which-key "line numbers")
+    "tw"  '(visual-line-mode           :which-key "word wrap")
+
+    ;; Compile
+    "c"   '(:ignore t :which-key "compile")
+    "cc"  '(compile                 :which-key "compile")
+    "cr"  '(recompile               :which-key "recompile")
+
+    ;; Help
+    "h"   '(:ignore t :which-key "help")
+    "hf"  '(describe-function       :which-key "describe function")
+    "hv"  '(describe-variable       :which-key "describe variable")
+    "hk"  '(describe-key            :which-key "describe key")
+
+    ;; Extras
+    "a"   '(artist-mode             :which-key "toggle artist-mode")
+
+    ;; Quit/session
+    "q"   '(:ignore t :which-key "quit/session")
+    "qq"  '(save-buffers-kill-terminal :which-key "quit emacs")))
+
+;; Optional: discoverable key hints
+(use-package which-key
+  :defer 0.1
+  :config
+  (which-key-mode 1)
+  (setq which-key-idle-delay 0.35))
 
 (defun insert-epoch-time ()
   "Insert the current epoch time (seconds since 1970-01-01) at point."
