@@ -12,6 +12,9 @@
 
 (package-initialize)
 
+;; put this early in init.el
+(setq treesit-extra-load-path '("~/.emacs.d/tree-sitter"))
+
 (unless package-archive-contents
   (message "Refreshing package archives...")
   (condition-case err
@@ -146,7 +149,6 @@
 (set-default-coding-systems 'utf-8)
 (setq use-dialog-box nil)
 (fset 'yes-or-no-p 'y-or-n-p)
-(setq gc-cons-threshold (* 100 1024 1024))
 (setq read-process-output-max (* 4 1024 1024))
 (setq frame-title-format
       '("" invocation-name ": "
@@ -232,19 +234,12 @@
 (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
 (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
 
-(use-package corfu
-  :ensure t
-  :init
-  (global-corfu-mode)
-  :custom
-  (corfu-auto t)              ;; Enable auto-completion
-  (corfu-auto-delay 0.1)      ;; Faster popup
-  (corfu-auto-prefix 2)       ;; Trigger after 2 chars
+(use-package corfu-prescient
+  :after (corfu prescient)
   :config
-  (use-package corfu-prescient
-    :ensure t
-    :config
-    (corfu-prescient-mode 1)))
+  (setq corfu-prescient-enable-filtering nil   ;; sort only
+        corfu-prescient-enable-sorting t)
+  (corfu-prescient-mode 1))
 
 (use-package cape
   :config
@@ -493,9 +488,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   )
 (keymap-global-set "<f7>" 'my-vdiff-toggle-or-quit)
 
-;;(use-package vterm :ensure t)
-;; (use-package dirvish :init (dirvish-override-dired-mode 1))
-
 ;; Column number display
 (column-number-mode 1)
 
@@ -534,9 +526,9 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (doom-modeline-icon t)
   (doom-modeline-major-mode-icon t))
 
-(use-package mood-line
-  :ensure t
-  :init (mood-line-mode 1))
+;; (use-package mood-line
+;;   :ensure t
+;;   :init (mood-line-mode 1))
 ;; Optional for icons in some segments:
 ;; (use-package nerd-icons :ensure t)
 
@@ -598,9 +590,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     ;; Buffers
     ;; "b"   '(:ignore t :which-key "buffers")
     "b"   '(consult-buffer         :which-key "switch buffer")
-    ;; "bd"  '(kill-this-buffer       :which-key "kill buffer")
-    ;; "bn"  '(next-buffer            :which-key "next buffer")
-    ;; "bp"  '(previous-buffer        :which-key "prev buffer")
 
     ;; Windows
     "w"   '(:ignore t :which-key "windows")
@@ -608,10 +597,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "wv"  '(split-window-right     :which-key "split right")
     "wd"  '(delete-window          :which-key "delete window")
     "w="  '(balance-windows        :which-key "balance windows")
-    "1"  '(split-window-below     :which-key "split below")
-    "2"  '(split-window-right     :which-key "split right")
-    "0"  '(delete-window          :which-key "delete window")
-    "="  '(balance-windows        :which-key "balance windows")
 
     ;; Project (project.el)
     "p"   '(:ignore t :which-key "project")
@@ -655,10 +640,13 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "qq"  '(save-buffers-kill-terminal :which-key "quit emacs")))
 
 (use-package which-key
+  :demand t
   :config
-  (setq which-key-show-early-on-C-h t)
-  (setq which-key-idle-secondary-delay 0.05)
-  (setq which-key-max-display-columns 3))
+  (setq which-key-idle-delay 0.1
+        which-key-idle-secondary-delay 0.05
+        which-key-show-early-on-C-h t)
+  (which-key-mode 1))
+
 
 (defun insert-epoch-time ()
   "Insert the current epoch time (seconds since 1970-01-01) at point."
@@ -682,7 +670,8 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 
 (use-package rainbow-delimiters
   :ensure t
-  :hook (prog-mode . rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode)
+  :defer t)
 
 
 (use-package org
