@@ -273,24 +273,16 @@
   (global-corfu-mode 1))
 
 
+(use-package nerd-icons-corfu
+  :after corfu
+  :init (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
 (use-package corfu-prescient
   :after (corfu prescient)
   :config
   (setq corfu-prescient-enable-filtering nil   ;; sort only
         corfu-prescient-enable-sorting t)
   (corfu-prescient-mode 1))
-
-;; (use-package cape
-;;   :config
-;;   ;; order: LSP (eglot) first, then cape extras
-;;   (add-hook 'eglot-managed-mode-hook
-;;             (lambda ()
-;;               (setq-local completion-at-point-functions
-;;                           (list (cape-super-capf
-;;                                  #'eglot-completion-at-point
-;;                                  #'cape-file
-;;                                  #'cape-dabbrev))))))
-
 
 ;; Report startup time
 (add-hook 'emacs-startup-hook
@@ -575,11 +567,10 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (doom-modeline-icon t)
   (doom-modeline-major-mode-icon t))
 
-;; (use-package mood-line
-;;   :ensure t
-;;   :init (mood-line-mode 1))
-;; Optional for icons in some segments:
-;; (use-package nerd-icons :ensure t)
+(use-package nerd-icons :ensure t)
+(use-package nerd-icons-dired :ensure t :hook (dired-mode . nerd-icons-dired-mode))
+;; (use-package nerd-icons-completion :ensure t
+;;   :hook (minibuffer-setup . nerd-icons-completion-maybe-enable))
 
 ;;Enable Clipboard Access: In iTerm2, go to iTerm2 > Preferences (or Settings), select the Selection tab. Check the box for "Applications in terminal may access clipboard".
 ;; need this for copy from terminal to local clipboard
