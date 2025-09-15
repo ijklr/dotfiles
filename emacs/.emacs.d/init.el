@@ -1,4 +1,8 @@
-;;; init.el --- shauncheng 2025
+;;;; init.el --- shauncheng 2025 -*- lexical-binding: t; -*-
+;;; Commentary:
+;;; Vanilla Emacs config.  Started by me in Summer of 2025.
+
+;;; Code:
 ;; ----------------------------------------------------------------------------
 ;; 1. Package Management
 ;; ----------------------------------------------------------------------------
@@ -9,11 +13,27 @@
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")
                          ("gnu"   . "https://elpa.gnu.org/packages/")))
-
-(package-initialize)
-
 ;; put this early in init.el
 (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter"))
+(defvar treesit-language-source-alist)
+(with-eval-after-load 'treesit
+  (setq treesit-language-source-alist
+        '((c   . ("https://github.com/tree-sitter/tree-sitter-c"))
+          (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp")))))
+
+;; Defer Tree-sitter remaps until after startup.
+;; Rationale:
+;; - Desktop/session restore may open C/C++ buffers during init.
+;; - If we remap c-mode→c-ts-mode early and grammars are not yet loaded,
+;;   Emacs can invoke the grammar installer and prompt "Language:" at startup.
+;; - Pushing the remap to `emacs-startup-hook` avoids that prompt while still
+;;   using c-ts-mode for new buffers after init completes.
+(add-hook 'emacs-startup-hook
+  (lambda ()
+    (add-to-list 'major-mode-remap-alist '(c-mode   . c-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))))
+
+(package-initialize)
 
 (unless package-archive-contents
   (message "Refreshing package archives...")
@@ -230,9 +250,28 @@
   (setf (alist-get 'c-mode eglot-server-programs)
         '("clangd" "--fallback-style=none")))
 
-;; Use TS modes when available
-(add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
-(add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+(use-package cape
+  :after eglot
+  :init
+  (defun sc/setup-capf-simple ()
+    (require 'cape)
+    (setq-local completion-at-point-functions
+                (list #'eglot-completion-at-point
+                      #'cape-file
+                      #'cape-dabbrev)))
+  :hook (eglot-managed-mode . sc/setup-capf-simple))
+
+
+;; Corfu: load now, then enable
+(use-package corfu
+  :ensure t
+  :demand t
+  :config
+  (setq corfu-auto t
+        corfu-auto-delay 0.1
+        corfu-auto-prefix 2)
+  (global-corfu-mode 1))
+
 
 (use-package corfu-prescient
   :after (corfu prescient)
@@ -241,16 +280,16 @@
         corfu-prescient-enable-sorting t)
   (corfu-prescient-mode 1))
 
-(use-package cape
-  :config
-  ;; order: LSP (eglot) first, then cape extras
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (setq-local completion-at-point-functions
-                          (list (cape-super-capf
-                                 #'eglot-completion-at-point
-                                 #'cape-file
-                                 #'cape-dabbrev))))))
+;; (use-package cape
+;;   :config
+;;   ;; order: LSP (eglot) first, then cape extras
+;;   (add-hook 'eglot-managed-mode-hook
+;;             (lambda ()
+;;               (setq-local completion-at-point-functions
+;;                           (list (cape-super-capf
+;;                                  #'eglot-completion-at-point
+;;                                  #'cape-file
+;;                                  #'cape-dabbrev))))))
 
 
 ;; Report startup time
@@ -268,10 +307,13 @@
 (keymap-global-set "C-3" 'split-window-right)
 (keymap-global-set "C-=" 'balance-windows)
 ;; TTY fix
-(keymap-global-set "<f1>" 'delete-other-windows)
-(keymap-global-set "<f2>" 'split-window-below)
-(keymap-global-set "<f3>" 'split-window-right)
-(keymap-global-set "<f4>" 'delete-window)
+;; (keymap-global-set "<f1>" 'delete-other-windows)
+;; (keymap-global-set "<f2>" 'split-window-below)
+;; (keymap-global-set "<f3>" 'split-window-right)
+;; (keymap-global-set "<f4>" 'delete-window)
+
+(keymap-global-set "<f1>" 'previous-buffer)
+(keymap-global-set "<f2>" 'next-buffer)
 
 ;; Keep layout as tabs
 (tab-bar-mode 1)           ; enable workspace tabs
@@ -413,9 +455,16 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (keymap-global-set "<f8>" 'clang-format-buffer)
 (setq lsp-clients-clangd-args '("--fallback-style=none"))
 
-;; Apply to all C-like modes (C, C++, Java, etc.)
-(setq c-default-style "linux"        ;; base style
-      c-basic-offset 4)              ;; indent width
+;; In tree-sitt mode, make sure it still indents 4 spaces.
+(with-eval-after-load 'c-ts-mode
+  (setq c-ts-mode-indent-offset 4)
+  (add-hook 'c-ts-mode-hook (lambda () (setq-local indent-tabs-mode nil))))
+(with-eval-after-load 'c++-ts-mode
+  (setq c++-ts-mode-indent-offset 4)
+  (add-hook 'c++-ts-mode-hook (lambda () (setq-local indent-tabs-mode nil))))
+;; If you use Evil, make operators like >> shift by 4:
+(with-eval-after-load 'evil
+  (setq evil-shift-width 4))
 
 ;; Good for moving file between Dired buffers
 (setq dired-dwim-target t)
@@ -684,3 +733,69 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 (when (eq system-type 'darwin)
   (setq mac-option-modifier 'meta
         mac-command-modifier 'super))
+
+
+;; ----------------------------------------------------------------------------
+;; Flymake Configuration (Syntax Checking)
+;; ----------------------------------------------------------------------------
+(use-package flymake
+  :ensure nil  ; Built-in package
+  :hook (prog-mode . flymake-mode)
+  :bind (:map flymake-mode-map
+              ("M-n" . flymake-goto-next-error)
+              ("M-p" . flymake-goto-prev-error))
+  :config
+  ;; Show diagnostics at end of line (Emacs 28+)
+  (when (>= emacs-major-version 28)
+    (setq flymake-show-diagnostics-at-end-of-line t))
+  
+  ;; Reduce delay before checking
+  (setq flymake-no-changes-timeout 0.5)
+  (setq flymake-start-on-flymake-mode t)
+  
+  ;; Configure fringe indicators
+  (setq flymake-fringe-indicator-position 'right-fringe))
+
+;; Simple function to show diagnostic at point
+(defun my/show-flymake-diagnostic-at-point ()
+  "Show Flymake diagnostic for the current line in echo area."
+  (interactive)
+  (when (and (bound-and-true-p flymake-mode)
+             (flymake-diagnostics (line-beginning-position) (line-end-position)))
+    (let ((diags (flymake-diagnostics (line-beginning-position) (line-end-position))))
+      (when diags
+        (let ((diag (car diags)))
+          (message "%s: %s"
+                   (propertize (symbol-name (flymake-diagnostic-type diag))
+                               'face 'bold)
+                   (flymake-diagnostic-text diag)))))))
+
+;; Show diagnostic after cursor stops (optional - can be removed if annoying)
+(defvar my/flymake-diagnostic-timer nil)
+(defun my/flymake-diagnostic-function ()
+  "Show diagnostic after a brief delay when cursor stops."
+  (when my/flymake-diagnostic-timer
+    (cancel-timer my/flymake-diagnostic-timer))
+  (setq my/flymake-diagnostic-timer
+        (run-with-idle-timer 0.8 nil #'my/show-flymake-diagnostic-at-point)))
+
+;; Enable the diagnostic display (comment out if you don't want it)
+(add-hook 'flymake-mode-hook
+          (lambda ()
+            (add-hook 'post-command-hook #'my/flymake-diagnostic-function nil t)))
+
+;; Use Consult for browsing diagnostics (works with modern Consult versions)
+(defun my/consult-flymake ()
+  "Browse Flymake diagnostics with Consult."
+  (interactive)
+  (if (bound-and-true-p flymake-mode)
+      (if (fboundp 'consult-flymake)
+          (consult-flymake)
+        (if (fboundp 'consult-compile-error)
+            (consult-compile-error)
+          (flymake-show-buffer-diagnostic)))
+    (message "Flymake not active in this buffer")))
+
+
+;; END OF Flymake Configuration (Syntax Checking)
+;; ----------------------------------------------------------------------------
