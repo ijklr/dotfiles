@@ -643,9 +643,13 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     ;; Windows
     "w"   '(:ignore t :which-key "windows")
     "ws"  '(split-window-below     :which-key "split below")
-    "wv"  '(split-window-right     :which-key "split right")
+    "wv"  '(split-window-right     :which-key "vertical split")
     "wd"  '(delete-window          :which-key "delete window")
     "w="  '(balance-windows        :which-key "balance windows")
+    "w1"  '(delete-other-windows   :which-key "delete other windows")
+    "w2"  '(split-window-below     :which-key "split below")
+    "w3"  '(split-window-right     :which-key "vertical split")
+    "w0"  '(delete-window          :which-key "delete window")
 
     ;; Project (project.el)
     "p"   '(:ignore t :which-key "project")
