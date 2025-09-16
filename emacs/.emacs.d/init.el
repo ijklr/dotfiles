@@ -676,9 +676,15 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "hv"  '(describe-variable       :which-key "describe variable")
     "hk"  '(describe-key            :which-key "describe key")
 
+    "m"   '(:ignore t :which-key "bookmark")
+    "ms"  '(bookmark-set       :which-key "set bookmark")
+    "mm"  '(bookmark-jump      :which-key "jump to bookmark")
+    
     ;; Quit/session
     "q"   '(:ignore t :which-key "quit/session")
     "qq"  '(save-buffers-kill-terminal :which-key "quit emacs")))
+
+
 
 (use-package which-key
   :demand t
