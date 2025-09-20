@@ -631,13 +631,14 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     ;; "b"   '(:ignore t :which-key "buffers")
     "b"   '(consult-buffer         :which-key "switch buffer")
 
-    ;; Windows
-    "w"   '(:ignore t :which-key "windows")
-    "ws"  '(split-window-below     :which-key "split below")
-    "wv"  '(split-window-right     :which-key "vertical split")
-    "wd"  '(delete-window          :which-key "delete window")
-    "w="  '(balance-windows        :which-key "balance windows")
-    "ww"  '(delete-other-windows   :which-key "delete other windows")
+    ;; Single shortcut keys
+    "1"  '(delete-other-windows   :which-key "delete other windows")
+    "2"  '(split-window-below     :which-key "split below")
+    "3"  '(split-window-right     :which-key "vertical split")
+    "0"  '(delete-window          :which-key "delete window")
+    "="  '(balance-windows        :which-key "balance windows")
+    "v"  '(evil-visual-block      :which-key "evil visual block")
+
 
     ;; Project (project.el)
     "p"   '(:ignore t :which-key "project")
