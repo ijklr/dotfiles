@@ -146,7 +146,7 @@
 ;; Install + wire up evil-nerd-commenter
 (use-package evil-nerd-commenter
   :after evil
-  :bind (("<f12>" . evilnc-comment-or-uncomment-lines))  ;; VSCode/JetBrains-style toggle
+  :bind (("<f12>" . evilnc-comment-or-uncomment-lines))
   :config
   ;; Vim-like keys: `gcc` (line), `gc{motion}` (operator), Visual `gc`
   (evil-define-key 'normal prog-mode-map (kbd "gc")  #'evilnc-comment-operator)
@@ -301,6 +301,8 @@
 
 (keymap-global-set "<f1>" 'previous-buffer)
 (keymap-global-set "<f2>" 'next-buffer)
+(keymap-global-set "M-[" 'previous-buffer)
+(keymap-global-set "M-]" 'next-buffer)
 
 ;; Keep layout as tabs
 (tab-bar-mode 1)           ; enable workspace tabs
@@ -624,6 +626,8 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "0"  '(delete-window          :which-key "delete window")
     "="  '(balance-windows        :which-key "balance windows")
     "v"  '(evil-visual-block      :which-key "evil visual block")
+    "c"  '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment")
+
     "d"  '(dired                 :which-key "dired")
     ;; Buffers
     "b"   '(consult-buffer         :which-key "switch buffer")
@@ -631,8 +635,11 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "s"  '(consult-line           :which-key "search buffer")
     ;; Git (Magit)
     "g"   '(magit-status           :which-key "status")
-    "m"  '(bookmark-set       :which-key "set bookmark")
-    "j"  '(bookmark-jump      :which-key "jump to bookmark")
+
+    ;; Bookmark
+    "m"   '(:ignore t :which-key "bookmark")
+    "mm"  '(bookmark-jump      :which-key "jump to bookmark")
+    "ms"  '(bookmark-set       :which-key "set bookmark")
 
     ;; Files
     "f"   '(:ignore t :which-key "files")
