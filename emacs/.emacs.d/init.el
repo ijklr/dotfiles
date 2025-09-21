@@ -109,14 +109,14 @@
           ("C-x C-q" . wgrep-change-to-wgrep-mode)
           ("C-c C-c" . wgrep-finish-edit)))
 (savehist-mode 1)
-(setq history-length 5000
+(setq history-length 300
       savehist-additional-variables '(kill-ring search-ring regexp-search-ring))
 
 ;;Recentf file: ensure directory exists to avoid startup warnings:
 (setq recentf-save-file (locate-user-emacs-file "var/recentf"))
 (make-directory (file-name-directory recentf-save-file) t)
 (recentf-mode 1)
-(setq recentf-max-saved-items 1000)   ;; how many files to keep
+(setq recentf-max-saved-items 500)   ;; how many files to keep
 (setq recentf-max-menu-items 50)
 
 ;;Save place (cursor position across files):
@@ -298,11 +298,6 @@
 (keymap-global-set "C-2" 'split-window-below)
 (keymap-global-set "C-3" 'split-window-right)
 (keymap-global-set "C-=" 'balance-windows)
-;; TTY fix
-;; (keymap-global-set "<f1>" 'delete-other-windows)
-;; (keymap-global-set "<f2>" 'split-window-below)
-;; (keymap-global-set "<f3>" 'split-window-right)
-;; (keymap-global-set "<f4>" 'delete-window)
 
 (keymap-global-set "<f1>" 'previous-buffer)
 (keymap-global-set "<f2>" 'next-buffer)
@@ -340,11 +335,9 @@
 (keymap-set my-custom-keymap "x" 'kill-this-buffer)
 
 
-
 ;; Make sure consult is installed & recentf-mode is enabled
 (keymap-global-set "C-x C-b" 'ibuffer)
 (setq ibuffer-expert t) ; fewer prompts
-
 
 ;; Move focus with Meta-hjkl
 (keymap-global-set "M-h" 'windmove-left)
@@ -496,7 +489,6 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
   (unless (display-graphic-p)
     (diff-hl-margin-mode 1)))
 
-
 (use-package vdiff
   :ensure t
   :defer t  ; Only load when actually needed
@@ -621,38 +613,38 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     ;; M-x
     "SPC" '(execute-extended-command :which-key "M-x")
     
+    ;;;;;;;;;;;;;;;;; Single char shortcut keys ;;;;;;;;;;;;;;;;;;
+    "1"  '(delete-other-windows   :which-key "delete other windows")
+    "2"  '(split-window-below     :which-key "split below")
+    "3"  '(split-window-right     :which-key "vertical split")
+    "5"  '(compile                 :which-key "compile")
+    "6"  '(recompile               :which-key "recompile")
+    "7"  '(my-run-aout             :which-key "run a.out")
+    "8"  '(clang-format-buffer     :which-key "clang format buffer")
+    "0"  '(delete-window          :which-key "delete window")
+    "="  '(balance-windows        :which-key "balance windows")
+    "v"  '(evil-visual-block      :which-key "evil visual block")
+    "d"  '(dired                 :which-key "dired")
+    ;; Buffers
+    "b"   '(consult-buffer         :which-key "switch buffer")
+    ;; Search
+    "s"  '(consult-line           :which-key "search buffer")
+    ;; Git (Magit)
+    "g"   '(magit-status           :which-key "status")
+    "m"  '(bookmark-set       :which-key "set bookmark")
+    "j"  '(bookmark-jump      :which-key "jump to bookmark")
+
     ;; Files
     "f"   '(:ignore t :which-key "files")
     "ff"  '(find-file           :which-key "find file")
     "fr"  '(consult-recent-file    :which-key "recent files")
     "fs"  '(save-buffer            :which-key "save file")
 
-    ;; Buffers
-    ;; "b"   '(:ignore t :which-key "buffers")
-    "b"   '(consult-buffer         :which-key "switch buffer")
-
-    ;; Single shortcut keys
-    "1"  '(delete-other-windows   :which-key "delete other windows")
-    "2"  '(split-window-below     :which-key "split below")
-    "3"  '(split-window-right     :which-key "vertical split")
-    "0"  '(delete-window          :which-key "delete window")
-    "="  '(balance-windows        :which-key "balance windows")
-    "v"  '(evil-visual-block      :which-key "evil visual block")
-
-
     ;; Project (project.el)
     "p"   '(:ignore t :which-key "project")
     "pf"  '(project-find-file      :which-key "find file in project")
     "pp"  '(project-switch-project :which-key "switch project")
     "ps"  '(project-find-regexp    :which-key "project search")
-
-    ;; Search
-    ;;"s"   '(:ignore t :which-key "search")
-    "s"  '(consult-line           :which-key "search buffer")
-
-    ;; Git (Magit)
-    ;; "g"   '(:ignore t :which-key "git")
-    "g"   '(magit-status           :which-key "status")
 
     ;; Toggles
     "t"   '(:ignore t :which-key "toggles")
@@ -661,29 +653,14 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "ta"  '(artist-mode                :which-key "toggle artist-mode")
     "td"  '(my-vdiff-toggle-or-quit    :which-key "toggle vdiff")
 
-    ;; Compile
-    "c"   '(:ignore t :which-key "compile")
-    "cc"  '(compile                 :which-key "compile")
-    "cr"  '(recompile               :which-key "recompile")
-    "ca"  '(my-run-aout             :which-key "run a.out")
-    "5"  '(compile                 :which-key "compile")
-    "6"  '(recompile               :which-key "recompile")
-    "7"  '(my-run-aout             :which-key "run a.out")
-    "8"  '(clang-format-buffer     :which-key "clang format buffer")
-
     ;; Help
     "h"   '(:ignore t :which-key "help")
     "hf"  '(describe-function       :which-key "describe function")
     "hv"  '(describe-variable       :which-key "describe variable")
     "hk"  '(describe-key            :which-key "describe key")
 
-    "m"   '(:ignore t :which-key "bookmark")
-    "ms"  '(bookmark-set       :which-key "set bookmark")
-    "mm"  '(bookmark-jump      :which-key "jump to bookmark")
-    
     ;; Quit/session
-    "q"   '(:ignore t :which-key "quit/session")
-    "qq"  '(save-buffers-kill-terminal :which-key "quit emacs")))
+    "f4"  '(save-buffers-kill-terminal :which-key "quit emacs")))
 
 
 
