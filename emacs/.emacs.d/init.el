@@ -805,4 +805,4 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
       message-sendmail-extra-arguments '("--read-envelope-from")
       mail-specify-envelope-from t
       mail-envelope-from 'header
-      message-kill-buffer-on-exit t))
+      message-kill-buffer-on-exit t)
