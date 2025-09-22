@@ -301,8 +301,9 @@
 
 (keymap-global-set "<f1>" 'previous-buffer)
 (keymap-global-set "<f2>" 'next-buffer)
-(keymap-global-set "M-[" 'previous-buffer)
-(keymap-global-set "M-]" 'next-buffer)
+;; conflicts with mouse in TTY
+;; (keymap-global-set "M-[" 'previous-buffer)
+;; (keymap-global-set "M-]" 'next-buffer)
 
 ;; Keep layout as tabs
 (tab-bar-mode 1)           ; enable workspace tabs
@@ -782,3 +783,26 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
 
 ;; END OF Flymake Configuration (Syntax Checking)
 ;; ----------------------------------------------------------------------------
+
+
+
+;; gmail(use-package mu4e
+:ensure nil                      ;; mu4e ships with mu
+:config
+(setq mu4e-maildir (expand-file-name "~/Mail")
+      mu4e-get-mail-command "mbsync -a"
+      mu4e-update-interval 300     ; every 5 minutes
+      mu4e-change-filenames-when-moving t
+
+      mu4e-sent-folder   "/gmail/[Gmail].Sent Mail"
+      mu4e-drafts-folder "/gmail/[Gmail].Drafts"
+      mu4e-trash-folder  "/gmail/[Gmail].Trash"
+      mu4e-refile-folder "/gmail/[Gmail].All Mail"
+
+      message-send-mail-function 'message-send-mail-with-sendmail
+      sendmail-program "msmtp"
+      message-sendmail-f-is-evil t
+      message-sendmail-extra-arguments '("--read-envelope-from")
+      mail-specify-envelope-from t
+      mail-envelope-from 'header
+      message-kill-buffer-on-exit t))
