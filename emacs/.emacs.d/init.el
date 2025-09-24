@@ -629,14 +629,19 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "v"  '(evil-visual-block      :which-key "evil visual block")
     "c"  '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment")
 
-    "d"  '(dired                 :which-key "dired")
+    ;;"d"  '(dired                 :which-key "dired")
+    "d"  '(my/vdiff-toggle-with-emacs-counterpart  :which-key "my diff for work")
     ;; Buffers
     "b"   '(consult-buffer         :which-key "switch buffer")
     ;; Search
     "s"  '(consult-line           :which-key "search buffer")
     ;; Git (Magit)
     "g"   '(magit-status           :which-key "status")
-
+    ;; new tab
+    "t"  '(tab-new            :which-key "new tab")
+    "["  '(tab-bar-switch-to-prev-tab      :which-key "prev tab")
+    "]"  '(tab-bar-switch-to-prev-tab      :which-key "next tab")
+    
     ;; Bookmark
     "m"   '(:ignore t :which-key "bookmark")
     "mm"  '(bookmark-jump      :which-key "jump to bookmark")
@@ -655,11 +660,11 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "ps"  '(project-find-regexp    :which-key "project search")
 
     ;; Toggles
-    "t"   '(:ignore t :which-key "toggles")
-    "tn"  '(display-line-numbers-mode  :which-key "line numbers")
-    "tw"  '(visual-line-mode           :which-key "word wrap")
-    "ta"  '(artist-mode                :which-key "toggle artist-mode")
-    "td"  '(my-vdiff-toggle-or-quit    :which-key "toggle vdiff")
+    "o"   '(:ignore t :which-key "toggles")
+    "on"  '(display-line-numbers-mode  :which-key "line numbers")
+    "ow"  '(visual-line-mode           :which-key "word wrap")
+    "oa"  '(artist-mode                :which-key "toggle artist-mode")
+    "od"  '(my-vdiff-toggle-or-quit    :which-key "toggle vdiff")
 
     ;; Help
     "h"   '(:ignore t :which-key "help")
@@ -806,3 +811,70 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
       mail-specify-envelope-from t
       mail-envelope-from 'header
       message-kill-buffer-on-exit t)
+
+;; --- You can keep these constants as-is ---
+(defconst my/google-root  "/google/src/cloud/shauncheng/")
+(defconst my/emacs-prefix (concat my/google-root "emacs/"))
+
+(use-package vdiff :ensure t)
+
+;; Our own session flag + a handle to the right-hand buffer (file2)
+(defvar my/vdiff-toggle--active nil)
+(defvar my/vdiff-toggle--last-right-buffer nil)
+
+(defun my/path->emacs-counterpart (path)
+"Map /google/src/cloud/shauncheng/XXX/... -> .../emacs/..."
+(unless (and (stringp path) (file-name-absolute-p path))
+  (user-error "Not visiting an absolute path"))
+(unless (string-prefix-p my/google-root path)
+  (user-error "Path must live under %s" my/google-root))
+(let* ((re (concat "^" (regexp-quote my/google-root) "[^/]+/")))
+  (replace-regexp-in-string re my/emacs-prefix path t t)))
+
+(defun my/vdiff--open-all-folds-everywhere ()
+  "Open all folds in any visible vdiff buffer."
+  (dolist (w (window-list))
+    (with-current-buffer (window-buffer w)
+      (when (and (bound-and-true-p vdiff-mode)
+                 (fboundp 'vdiff-open-all-folds))
+        (ignore-errors (vdiff-open-all-folds))))))
+
+;; Ensure our flag resets if you quit via C-c q
+(with-eval-after-load 'vdiff
+  (when (fboundp 'vdiff-quit)
+    (advice-add 'vdiff-quit :after (lambda (&rest _)
+                                     (setq my/vdiff-toggle--active nil)))))
+
+(defun my/vdiff-toggle-with-emacs-counterpart ()
+  "Toggle vdiff: left=file1 is /emacs/...; right=file2 is current file.
+On toggle-off, quit vdiff and keep a single window showing file2."
+  (interactive)
+  (if my/vdiff-toggle--active
+      (let ((buf (and (buffer-live-p my/vdiff-toggle--last-right-buffer)
+                      my/vdiff-toggle--last-right-buffer)))
+        ;; Quit vdiff, then show only file2 in a single window.
+        (ignore-errors (vdiff-quit))
+        (setq my/vdiff-toggle--active nil)
+        (when buf
+          (switch-to-buffer buf)
+          (delete-other-windows))
+        (message "vdiff: quit → single window (file2)"))
+    ;; Start vdiff
+    (let* ((here (or (buffer-file-name)
+                     (user-error "Current buffer isn’t visiting a file")))
+           (emacs-file (my/path->emacs-counterpart here)))
+      (unless (file-exists-p emacs-file)
+        (user-error "Counterpart not found:\n  %s" emacs-file))
+      ;; Ensure both buffers exist; remember file2 buffer so we can keep it later.
+      (let ((right-buf (or (find-buffer-visiting here)
+                           (find-file-noselect here))))
+        (find-file-noselect emacs-file)
+        (vdiff-files emacs-file here)              ;; left=file1, right=file2
+        (setq my/vdiff-toggle--active t
+              my/vdiff-toggle--last-right-buffer right-buf)
+        ;; Open all folds now and once more after initial refine/refresh.
+        (my/vdiff--open-all-folds-everywhere)
+        (run-at-time 0.05 nil #'my/vdiff--open-all-folds-everywhere)
+        ;; Put focus on the right so you can edit immediately.
+        (ignore-errors (windmove-right))
+                (message "vdiff: %s  ⇆  %s" emacs-file here)))))
