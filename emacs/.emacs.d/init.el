@@ -641,7 +641,7 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "t"  '(tab-new            :which-key "new tab")
     "w"  '(tab-close            :which-key "close tab")
     "["  '(tab-bar-switch-to-prev-tab      :which-key "prev tab")
-    "]"  '(tab-bar-switch-to-prev-tab      :which-key "next tab")
+    "]"  '(tab-bar-switch-to-next-tab      :which-key "next tab")
     
     ;; Bookmark
     "m"   '(:ignore t :which-key "bookmark")
