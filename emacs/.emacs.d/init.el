@@ -677,6 +677,11 @@ With C-u (PROMPT-DIRECTORY non-nil): Prompt for a directory and then run
     "f4"  '(save-buffers-kill-terminal :which-key "quit emacs")))
 
 
+;; Bind Win+Shift+[]  to switch to next tab and prev tab just like in browsers.
+(keymap-set global-map "s-{" #'tab-bar-switch-to-prev-tab)
+(keymap-set global-map "s-}" #'tab-bar-switch-to-next-tab)
+
+
 
 (use-package which-key
   :demand t
